@@ -11,7 +11,11 @@ app.config['TRUST_REMOTE_ADDR'] = True
 
 @app.route('/')
 def home():
-    return "✅ Flask Lottery App Online!", 200
+    try:
+        return render_template('index.html'), 200
+    except:
+        return "<h1>✅ Flask Lottery App Online!</h1>", 200
+
 
 @app.route('/api/health')
 def health():
