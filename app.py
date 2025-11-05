@@ -1,43 +1,13 @@
-import json
-import threading
-import shutil
+from flask import Flask, jsonify, render_template
 import os
-from datetime import datetime, timedelta
-import pandas as pd
-import numpy as np
-import requests
-from bs4 import BeautifulSoup
-from flask import Flask, render_template, request, jsonify, send_from_directory
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, confusion_matrix, precision_recall_curve
-from sklearn.preprocessing import StandardScaler
-from sklearn.utils.class_weight import compute_class_weight
-from xgboost import XGBClassifier
-from imblearn.over_sampling import SMOTE
-import urllib3
-import socket
-import time
-import warnings
-from scipy import stats
+import sys
 
-warnings.filterwarnings('ignore')
-
-# ==================== CONFIGURACIÓN ====================
+# ==================== CONFIGURATION ====================
 app = Flask(__name__)
 app.config['PREFERRED_URL_SCHEME'] = 'https'
 app.config['TRUST_REMOTE_ADDR'] = True
 
-# Rutas y variables globales
-ruta_archivo = "resultados_loterias.json"
-carpeta_static = "static"
-archivo_json_static = os.path.join(carpeta_static, ruta_archivo)
-analisis_texto = ""
-datos_ultimo_sorteo = {}
-predicciones_diarias = {}
-analisis_numeros_especiales = {}
-lock = threading.Lock()
-modelo_ia = None
-# ==================== HEALTH CHECK ROUTES ====================
+# ==================== HEALTH ROUTES (MUST BE FIRST) ====================
 
 @app.route('/')
 def home():
@@ -45,8 +15,23 @@ def home():
 
 @app.route('/api/health')
 def health():
-    from flask import jsonify
     return jsonify({"status": "ok", "app": "analisis_loterias"}), 200
+
+# ==================== LAZY LOAD ALL OTHER CODE ====================
+# Import the rest ONLY when needed
+
+def load_app_functions():
+    """Load heavy functions only when first request comes in"""
+    global datos_ultimo_sorteo, predicciones_diarias
+    
+    # Rutas y variables globales
+    # ... ADD REST OF YOUR CODE HERE ...
+    
+# Initialize variables
+datos_ultimo_sorteo = {}
+predicciones_diarias = {}
+
+# ==================== END ====================
 
 # ==================== END ROUTES ====================
 
