@@ -1,11 +1,11 @@
-from flask import Flask, jsonify
+import sys
+import os
 
-app = Flask(__name__)
+# Agrega el directorio raíz al path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-@app.route('/')
-def home():
-    return "✅ APP IS RUNNING!"
+# Importa tu aplicación Flask
+from app import app
 
-@app.route('/api/health')
-def health():
-    return jsonify({"status": "ok"})
+# Exporta para Vercel
+application = app
