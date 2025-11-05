@@ -37,6 +37,18 @@ predicciones_diarias = {}
 analisis_numeros_especiales = {}
 lock = threading.Lock()
 modelo_ia = None
+# ==================== HEALTH CHECK ROUTES ====================
+
+@app.route('/')
+def home():
+    return "✅ Flask Lottery App Online!", 200
+
+@app.route('/api/health')
+def health():
+    from flask import jsonify
+    return jsonify({"status": "ok", "app": "analisis_loterias"}), 200
+
+# ==================== END ROUTES ====================
 
 # 📅 CALENDARIO ACTUALIZADO DE LOTERÍAS
 # 0=Lunes, 1=Martes, 2=Miércoles, 3=Jueves, 4=Viernes, 5=Sábado, 6=Domingo
