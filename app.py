@@ -1082,7 +1082,6 @@ def ejecutar_scraping_y_analisis():
         print(f"❌ Error: {str(e)}")
 
 # ==================== RUTAS FLASK ====================
-
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -1247,6 +1246,7 @@ if __name__ == "__main__":
     print("   ngrok http 5000")
     print("\n" + "="*70 + "\n")
 
-    app.run(host='0.0.0.0', port=puerto, debug=True, use_reloader=False)
+   app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
+
 
 
