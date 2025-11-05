@@ -1,18 +1,5 @@
-from flask import Flask
+from app import app
 
-app = Flask(__name__)
-
-@app.route('/')
-def home():
-    return "<h1>✅ Flask Lottery App Online!</h1>", 200
-
-@app.route('/<path:path>')
-def catch_all(path):
-    return "<h1>✅ Flask Lottery App Online!</h1>", 200
-
-@app.route('/api/health')
-def health():
-    return {"status": "ok"}, 200
-
-if __name__ == '__main__':
-    app.run()
+# Vercel requiere que el app sea una función callable
+def handler(request):
+    return app(request)
