@@ -6,3 +6,5 @@ matplotlib==3.7.2
 requests==2.31.0
 xgboost==2.0.0
 imbalanced-learn==0.11.0
+beautifulsoup4==4.12.2
+urllib3==2.0.7
