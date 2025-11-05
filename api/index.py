@@ -1,19 +1,16 @@
-from flask import Flask, render_template, jsonify, request
-import sys
-import os
+from flask import Flask
 
-# Add parent directory to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-app = Flask(__name__, template_folder='../templates', static_folder='../static')
+app = Flask(__name__)
 
 @app.route('/')
-def home():
+@app.route('/<path:path>')
+def catch_all(path=''):
     return "<h1>✅ Flask Lottery App Online!</h1>", 200
 
 @app.route('/api/health')
 def health():
-    return jsonify({"status": "ok", "app": "analisis_loterias"}), 200
+    return {"status": "ok", "app": "analisis_loterias"}, 200
 
-if __name__ == '__main__':
-    app.run(debug=False)
+# Vercel needs this
+def handler(request):
+    return app(request.environ, request.start_response)
