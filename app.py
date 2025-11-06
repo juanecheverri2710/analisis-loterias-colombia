@@ -40,24 +40,32 @@ predicciones_diarias = {}
 lock = threading.Lock()
 modelo_ia = None
 
-# Días de juego por lotería (0=Lunes, 1=Martes, 2=Miércoles, 3=Jueves, 4=Viernes, 5=Sábado, 6=Domingo)
+# ✅ CALENDARIO CORREGIDO - Días de juego por lotería 
+# (0=Lunes, 1=Martes, 2=Miércoles, 3=Jueves, 4=Viernes, 5=Sábado, 6=Domingo)
 DIAS_LOTERIA = {
-    "Boyacá": [2, 5],
-    "Cruz Roja": [1, 4],
-    "Manizales": [3, 6],
-    "Cundinamarca": [2, 5],
-    "Tolima": [3, 6],
-    "Medellín": [1, 4],
-    "Santander": [0, 3],
-    "Huila": [2, 5],
-    "Risaralda": [1, 4],
-    "Bogotá": [0, 3],
-    "Meta": [2, 5],
-    "Quindío": [1, 4],
-    "Valle": [3, 6],
-    "Cauca": [0, 3],
-    "Astro Luna": [1, 3, 5],
-    "Astro Sol": [0, 2, 4, 6]
+    # Lunes
+    "Cundinamarca": [0],
+    "Tolima": [0],
+    # Martes
+    "Cruz Roja": [1],
+    "Huila": [1],
+    # Miércoles
+    "Manizales": [2],
+    "Valle": [2],
+    "Meta": [2],
+    # Jueves
+    "Bogotá": [3],
+    "Quindío": [3],
+    # Viernes
+    "Medellín": [4],
+    "Risaralda": [4],
+    "Santander": [4],
+    # Sábado
+    "Boyacá": [5],
+    "Cauca": [5],
+    # Todos los días
+    "Astro Luna": [0, 1, 2, 3, 4, 5, 6],
+    "Astro Sol": [0, 1, 2, 3, 4, 5, 6]
 }
 
 def crear_o_validar_archivo_json():
@@ -728,6 +736,11 @@ def ejecutar_scraping_y_analisis():
     except Exception as e:
         analisis_texto = f"Error: {str(e)}"
 
+# ✅ HEALTH CHECK PARA KOYEB
+@app.route('/health')
+def health():
+    return jsonify({"status": "healthy"}), 200
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -769,13 +782,11 @@ if __name__ == "__main__":
         local_ip = "127.0.0.1"
 
     print("\n" + "="*70)
-    print("🚀 SERVIDOR FLASK - HTTP (COMPATIBLE CON NGROK)")
+    print("🚀 SERVIDOR FLASK - PRODUCTION READY")
     print("="*70)
-    print(f"\n✅ Ejecutando en HTTP")
+    print(f"\n✅ Ejecutando en puerto: {puerto}")
     print(f"📍 Local: http://localhost:{puerto}")
     print(f"📱 Red: http://{local_ip}:{puerto}")
-    print("\n🌐 PARA NGROK (NUEVA TERMINAL):")
-    print(" ngrok http 5000")
     print("\n" + "="*70 + "\n")
 
-    app.run(host='0.0.0.0', port=puerto, debug=True, use_reloader=False)
+    app.run(host='0.0.0.0', port=puerto, debug=False, use_reloader=False)
