@@ -1,4 +1,4 @@
-﻿import json
+﻿﻿import json
 import threading
 import shutil
 import os
@@ -185,45 +185,13 @@ def obtener_resultados_superastro_mejorado(tipo_loteria, fecha_inicio, max_inten
         response = None
         url_exitosa = None
         
-        print(f"    Intentando API: {api_url}")
-        try:
-            response = requests.get(api_url, headers=headers, timeout=15, verify=False)
-            if response.status_code == 200:
-                try:
-                    data_json = response.json()
-                    if isinstance(data_json, dict) and 'resultados' in data_json:
-                        for item in data_json['resultados']:
-                            try:
-                                fecha_str = item.get('fecha', '')
-                                numero = str(item.get('numero', '0')).zfill(4)
-                                signo = item.get('signo', item.get('serie', 'sin signo')).lower().strip()
-                                
-                                fecha_obj = None
-                                for fmt in ('%d/%m/%Y', '%Y-%m-%d', '%d-%m-%Y'):
-                                    try:
-                                        fecha_obj = datetime.strptime(fecha_str, fmt)
-                                        break
-                                    except ValueError:
-                                        continue
-                                
-                                if fecha_obj and numero.isdigit():
-                                    fecha_limite = datetime.now() - timedelta(days=1825)
-                                    if fecha_obj >= fecha_limite:
-                                        resultados.append({
-                                            "numero": numero,
-                                            "serie": signo,
-                                            "fecha": fecha_obj.strftime('%Y-%m-%d')
-                                        })
-                            except:
-                                continue
-                    
-                    if resultados:
-                        print(f" {nombre_loteria}: {len(resultados)} resultados desde API JSON")
-                        return resultados
-                except:
-                    print(f"    Respuesta API no es JSON vlido")
-        except Exception as e:
-            print(f"    Error de API: {str(e)[:50]}")
+        print(f" Intentando API: [https://loterias.info/api/{tipo_loteria.lower()}]")
+try:
+    # Solo usar la API de loterias.info
+    api_url_simple = f"https://loterias.info/api/{tipo_loteria.lower()}"
+    response = requests.get(api_url_simple, headers=headers, timeout=10, verify=False)
+    if response.status_code == 200:
+        # ... resto del código
         
         print(f"    Intentando URLs alternativas con scraping...")
         for url in urls_alternativas:
