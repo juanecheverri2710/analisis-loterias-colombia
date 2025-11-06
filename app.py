@@ -143,60 +143,111 @@ def obtener_resultados_superastro_mejorado(tipo_loteria, fecha_inicio, max_inten
     resultados = []
     try:
         if tipo_loteria.lower() == 'sol':
-            url = "https://www.astrosor.com/astro-sol"
             nombre_loteria = 'Astro Sol'
+            urls = [
+                "https://superastro.com.co/resultados-astro-sol",
+                "https://resultadodelaloteria.com/colombia/astro-sol",
+                "https://www.astrosor.com/astro-sol",
+                "https://superastro.co/astro-sol"
+            ]
         elif tipo_loteria.lower() == 'luna':
-            url = "https://www.astrosor.com/astro-luna"
             nombre_loteria = 'Astro Luna'
+            urls = [
+                "https://superastro.com.co/resultados-astro-luna",
+                "https://resultadodelaloteria.com/colombia/astro-luna",
+                "https://www.astrosor.com/astro-luna",
+                "https://superastro.co/astro-luna"
+            ]
         else:
             return resultados
         
         print(f"🔄 {nombre_loteria}: Descargando histórico de 5 años...")
         
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
             'Accept-Language': 'es-ES,es;q=0.9',
-            'Referer': 'https://www.astrosor.com/',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'DNT': '1',
             'Connection': 'keep-alive',
             'Upgrade-Insecure-Requests': '1'
         }
         
         response = None
-        for intento in range(max_intentos):
-            try:
-                response = requests.get(url, headers=headers, timeout=30, verify=False)
-                if response.status_code == 200:
-                    print(f"   ✅ Conexión exitosa a {url}")
-                    break
-                print(f"   Reintentando... (Error {response.status_code})")
-                time.sleep(2)
-            except Exception as e:
-                print(f"   Intento {intento+1}/{max_intentos} - Error: {str(e)}")
-                time.sleep(2)
+        url_exitosa = None
+        
+        for url in urls:
+            print(f"   Intentando: {url}")
+            for intento in range(max_intentos):
+                try:
+                    response = requests.get(url, headers=headers, timeout=20, verify=False, allow_redirects=True)
+                    if response.status_code == 200:
+                        url_exitosa = url
+                        print(f"   ✅ Conexión exitosa a {url}")
+                        break
+                    elif response.status_code in [301, 302, 303, 307, 308]:
+                        print(f"   → Redirigiendo desde {url}")
+                        if 'Location' in response.headers:
+                            url = response.headers['Location']
+                            continue
+                    else:
+                        print(f"   ⚠️ Error {response.status_code}")
+                        time.sleep(1)
+                except requests.exceptions.Timeout:
+                    print(f"   ⏱️ Timeout (intento {intento+1}/{max_intentos})")
+                    time.sleep(2)
+                except requests.exceptions.ConnectionError as e:
+                    print(f"   🔌 Error de conexión (intento {intento+1}/{max_intentos})")
+                    time.sleep(2)
+                except Exception as e:
+                    print(f"   ❌ Error: {str(e)[:50]}")
+                    time.sleep(2)
+            
+            if response and response.status_code == 200:
+                break
         
         if not response or response.status_code != 200:
-            print(f"⚠️ Intentando URL alternativa para {nombre_loteria}...")
-            try:
-                if tipo_loteria.lower() == 'sol':
-                    alt_url = "https://superastro.com.co/resultados-astro-sol"
-                else:
-                    alt_url = "https://superastro.com.co/resultados-astro-luna"
-                
-                response = requests.get(alt_url, headers=headers, timeout=30, verify=False)
-                if response.status_code != 200:
-                    print(f"❌ No se pudo conectar a {nombre_loteria}")
-                    return resultados
-                print(f"   ✅ Conectado a URL alternativa")
-            except:
-                print(f"❌ No se pudo conectar a SuperAstro para {nombre_loteria}")
-                return resultados
+            print(f"❌ No se pudo conectar a ninguna URL para {nombre_loteria}")
+            print(f"   URLs intentadas: {len(urls)}")
+            return resultados
         
         soup = BeautifulSoup(response.text, 'html.parser')
         
         tablas = soup.find_all('table')
         if not tablas:
-            print(f"⚠️ No se encontraron tablas HTML para {nombre_loteria}")
+            print(f"⚠️ No se encontraron tablas HTML en {url_exitosa}")
+            
+            divs = soup.find_all('div', class_=lambda x: x and 'resultado' in x.lower())
+            if divs:
+                print(f"   Intentando parsear divs alternativos...")
+                for div in divs[:100]:
+                    try:
+                        texto = div.get_text(strip=True)
+                        partes = texto.split()
+                        if len(partes) >= 3:
+                            fecha_str = partes[0]
+                            numero = partes[1]
+                            signo = partes[2].lower() if len(partes) > 2 else "sin signo"
+                            
+                            try:
+                                fecha_obj = datetime.strptime(fecha_str, '%d/%m/%Y')
+                            except:
+                                continue
+                            
+                            fecha_limite = datetime.now() - timedelta(days=1825)
+                            if fecha_obj < fecha_limite:
+                                continue
+                            
+                            numero_limpio = numero.replace('.', '').strip()
+                            if numero_limpio.isdigit() and 3 <= len(numero_limpio) <= 4:
+                                resultados.append({
+                                    "numero": numero_limpio.zfill(4),
+                                    "serie": signo,
+                                    "fecha": fecha_obj.strftime('%Y-%m-%d')
+                                })
+                    except:
+                        continue
+            
             return resultados
         
         fecha_limite = datetime.now() - timedelta(days=1825)
@@ -217,22 +268,18 @@ def obtener_resultados_superastro_mejorado(tipo_loteria, fecha_inicio, max_inten
                     numero = celdas[1].get_text(strip=True)
                     signo = celdas[2].get_text(strip=True).lower().strip() if len(celdas) > 2 else "sin signo"
                     
-                    try:
-                        for fmt in ('%d/%m/%Y', '%Y-%m-%d', '%d-%m-%Y', '%d/%m/%y'):
-                            try:
-                                fecha_obj = datetime.strptime(fecha_str, fmt)
-                                fecha_formateada = fecha_obj.strftime('%Y-%m-%d')
-                                break
-                            except ValueError:
-                                continue
-                        else:
+                    fecha_obj = None
+                    for fmt in ('%d/%m/%Y', '%Y-%m-%d', '%d-%m-%Y', '%d/%m/%y', '%d.%m.%Y'):
+                        try:
+                            fecha_obj = datetime.strptime(fecha_str, fmt)
+                            break
+                        except ValueError:
                             continue
-                        
-                        if fecha_obj < fecha_limite:
-                            continue
-                    except:
+                    
+                    if not fecha_obj or fecha_obj < fecha_limite:
                         continue
                     
+                    fecha_formateada = fecha_obj.strftime('%Y-%m-%d')
                     numero_limpio = numero.replace(' ', '').replace('.', '').replace(',', '').strip()
                     
                     if numero_limpio.isdigit() and 3 <= len(numero_limpio) <= 4:
@@ -246,11 +293,15 @@ def obtener_resultados_superastro_mejorado(tipo_loteria, fecha_inicio, max_inten
                 except Exception as e:
                     continue
         
-        print(f"✅ {nombre_loteria}: {contador} resultados descargados (últimos 5 años)")
+        if contador > 0:
+            print(f"✅ {nombre_loteria}: {contador} resultados descargados (últimos 5 años) desde {url_exitosa}")
+        else:
+            print(f"⚠️ {nombre_loteria}: Tabla encontrada pero sin datos válidos")
+        
         return resultados
     
     except Exception as e:
-        print(f"❌ {tipo_loteria.upper()}: Error general - {str(e)}")
+        print(f"❌ {tipo_loteria.upper()}: Error general - {str(e)[:100]}")
         return resultados
 
 def obtener_todas_loterias():
