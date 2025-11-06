@@ -15,35 +15,27 @@
         </header>
 
         <main>
-            <!-- Sección Control -->
             <section class="control-section">
                 <button id="btnAnalizar" class="btn btn-primary">📊 Iniciar Análisis</button>
                 <div id="loading" class="loading hidden">
                     <div class="spinner"></div>
                     <p>Analizando 16 loterías...</p>
-                    <p class="time-info">Tiempo estimado: 50-60 segundos</p>
+                    <p class="time-info">Tiempo estimado: 60 segundos</p>
                 </div>
             </section>
 
-            <!-- Sección Predicciones -->
             <section class="predicciones-section">
                 <h2>🎯 Predicciones de HOY</h2>
                 <p class="section-desc">Números más probables según análisis de patrones</p>
-                <div id="predicciones" class="predicciones-grid">
-                    <p class="placeholder">Haz clic en "Iniciar Análisis" para generar predicciones</p>
-                </div>
+                <div id="predicciones" class="predicciones-grid"></div>
             </section>
 
-            <!-- Sección Últimos Resultados -->
             <section class="sorteos-section">
                 <h2>📅 Últimos Resultados</h2>
                 <p class="section-desc">Información del último sorteo de cada lotería</p>
-                <div id="sorteos" class="sorteos-grid">
-                    <p class="placeholder">Cargando datos de sorteos...</p>
-                </div>
+                <div id="sorteos" class="sorteos-grid"></div>
             </section>
 
-            <!-- Sección Análisis Completo -->
             <section class="resultados-section">
                 <h2>📈 Análisis Completo</h2>
                 <p class="section-desc">Detalles técnicos del análisis realizado</p>
@@ -51,48 +43,11 @@
                     <pre id="resultadosText">Haz clic en "Iniciar Análisis" para ver los detalles</pre>
                 </div>
             </section>
-
-            <!-- Sección Información -->
-            <section class="info-section">
-                <h2>ℹ️ Características de la Aplicación</h2>
-                <div class="features-grid">
-                    <div class="feature">
-                        <h3>✅ Correcciones Implementadas</h3>
-                        <ul>
-                            <li>Timeout optimizado a 55 segundos</li>
-                            <li>Sincronización Flask ↔ Frontend mejorada</li>
-                            <li>Manejo de errores robusto</li>
-                            <li>Carga asincrónica de datos</li>
-                            <li>Validación de respuestas JSON</li>
-                        </ul>
-                    </div>
-                    <div class="feature">
-                        <h3>🎯 Loterías Soportadas</h3>
-                        <ul>
-                            <li>✓ 14 Loterías Principales</li>
-                            <li>✓ Astro Luna (Signos)</li>
-                            <li>✓ Astro Sol (Signos)</li>
-                            <li>✓ Datos de 5 años</li>
-                            <li>✓ 1,800+ registros por lotería</li>
-                        </ul>
-                    </div>
-                    <div class="feature">
-                        <h3>⚙️ Tecnología</h3>
-                        <ul>
-                            <li>Backend: Flask + Python</li>
-                            <li>ML: Ensemble (XGBoost + LGB + RF)</li>
-                            <li>Frontend: HTML5 + CSS3 + JS</li>
-                            <li>Deploy: Koyeb Cloud</li>
-                            <li>Status: ✅ Producción</li>
-                        </ul>
-                    </div>
-                </div>
-            </section>
         </main>
 
         <footer>
-            <p>&copy; 2025 Análisis de Loterías Colombia | v2.0 - Versión Optimizada</p>
-            <p>Desarrollado con IA | Todos los datos actualizados en tiempo real</p>
+            <p>&copy; 2025 Análisis de Loterías Colombia | v2.1 - Optimizado</p>
+            <p>Todos los datos actualizados en tiempo real</p>
         </footer>
     </div>
 
@@ -100,53 +55,50 @@
         // Cargar datos al iniciar página
         cargarDatos();
 
-        // Evento del botón Iniciar Análisis
+        // Evento del botón
         document.getElementById('btnAnalizar').onclick = async function() {
             this.disabled = true;
             document.getElementById('loading').classList.remove('hidden');
             
-            // Iniciar análisis en backend
             await fetch('/start-analysis', {method: 'POST'});
             
-            // Esperar a que se complete (55 segundos)
-            await new Promise(r => setTimeout(r, 55000));
+            // Esperar 65 segundos
+            await new Promise(r => setTimeout(r, 65000));
             
-            // Obtener resultados
             const res = await fetch('/get-results');
             const data = await res.json();
             document.getElementById('resultadosText').innerText = data.result || 'Análisis completado exitosamente';
             document.getElementById('loading').classList.add('hidden');
             
-            // Cargar datos actualizados
             cargarDatos();
             this.disabled = false;
         };
 
-        // Función para cargar predicciones y sorteos
         async function cargarDatos() {
             try {
-                // Cargar predicciones
+                // Predicciones
                 const resPred = await fetch('/get-predicciones');
                 const pred = await resPred.json();
                 let htmlPred = '';
                 
                 for (let [loteria, valor] of Object.entries(pred)) {
                     if (valor) {
-                        let numero = valor.split(' ')[0] || 'N/A';
-                        let signo = valor.split(' ')[1] || '';
+                        let partes = valor.split(' ');
+                        let numero = partes[0] || 'N/A';
+                        let signo = partes[1] || '';
                         htmlPred += `
                             <div class="card prediccion">
                                 <h3>${loteria}</h3>
                                 <div class="numero">${numero}</div>
-                                <p class="signo">${signo}</p>
+                                ${signo ? `<p class="signo">${signo}</p>` : ''}
                             </div>
                         `;
                     }
                 }
                 
-                document.getElementById('predicciones').innerHTML = htmlPred || '<p class="placeholder">Sin predicciones disponibles</p>';
+                document.getElementById('predicciones').innerHTML = htmlPred || '<p class="placeholder">Sin predicciones disponibles. Haz clic en "Iniciar Análisis"</p>';
 
-                // Cargar sorteos
+                // Sorteos
                 const resSorteos = await fetch('/get-sorteos');
                 const sorteos = await resSorteos.json();
                 let htmlSorteos = '';
@@ -158,7 +110,7 @@
                                 <h3>${loteria}</h3>
                                 <div class="numero">${info.numero}</div>
                                 <p class="detalle">Signo: ${info.signo || 'N/A'}</p>
-                                <p class="fecha">${info.fecha || 'N/A'}</p>
+                                <p class="fecha">${info.fecha || ''}</p>
                             </div>
                         `;
                     }

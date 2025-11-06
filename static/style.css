@@ -40,12 +40,13 @@ header {
     color: white;
     padding: 50px 20px;
     text-align: center;
-    border-bottom: 4px solid var(--secondary);
+    border-bottom: 5px solid var(--secondary);
 }
 
 header h1 {
     font-size: 2.8em;
     margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 header p {
@@ -74,6 +75,9 @@ section h2 {
     font-size: 2em;
     border-bottom: 3px solid var(--secondary);
     padding-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .section-desc {
@@ -96,7 +100,7 @@ section h2 {
     cursor: pointer;
     transition: all 0.3s ease;
     font-weight: 600;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .btn-primary {
@@ -106,7 +110,7 @@ section h2 {
 
 .btn-primary:hover:not(:disabled) {
     transform: translateY(-3px);
-    box-shadow: 0 10px 25px rgba(33, 150, 243, 0.4);
+    box-shadow: 0 10px 30px rgba(33, 150, 243, 0.5);
 }
 
 .btn:disabled {
@@ -121,9 +125,10 @@ section h2 {
     align-items: center;
     justify-content: center;
     gap: 15px;
-    padding: 30px;
+    padding: 40px 30px;
     background: var(--light);
     border-radius: 10px;
+    border: 2px dashed var(--primary);
 }
 
 .loading.hidden {
@@ -134,8 +139,8 @@ section h2 {
     border: 4px solid var(--light);
     border-top: 4px solid var(--primary);
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     animation: spin 1s linear infinite;
 }
 
@@ -146,88 +151,105 @@ section h2 {
 
 .time-info {
     color: #666;
-    font-size: 0.9em;
+    font-size: 0.95em;
+    font-weight: 500;
 }
 
 .predicciones-grid,
-.sorteos-grid,
-.features-grid {
+.sorteos-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 25px;
 }
 
 .card {
     background: white;
     border: 2px solid var(--border);
-    border-radius: 10px;
-    padding: 25px;
+    border-radius: 12px;
+    padding: 30px 20px;
     text-align: center;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 }
 
 .card:hover {
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    transform: translateY(-8px);
     border-color: var(--primary);
 }
 
 .card h3 {
     color: var(--primary);
-    margin-bottom: 15px;
-    font-size: 1.1em;
+    margin-bottom: 20px;
+    font-size: 1.15em;
+    word-wrap: break-word;
+    min-height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .card.prediccion {
-    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
     border: 2px solid var(--primary);
 }
 
+.card.prediccion:hover {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+}
+
 .card.sorteo {
-    background: linear-gradient(135deg, #FFC10715 0%, #FFB30015 100%);
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.08) 0%, rgba(255, 179, 0, 0.08) 100%);
     border: 2px solid var(--secondary);
 }
 
+.card.sorteo:hover {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.15) 0%, rgba(255, 179, 0, 0.15) 100%);
+}
+
 .numero {
-    font-size: 2.5em;
+    font-size: 3em;
     font-weight: bold;
     color: var(--primary);
-    margin: 15px 0;
+    margin: 20px 0;
     font-family: 'Courier New', monospace;
+    letter-spacing: 2px;
 }
 
 .signo {
     color: #666;
     font-size: 0.95em;
     text-transform: capitalize;
-    margin-top: 10px;
+    margin-top: 15px;
+    font-style: italic;
 }
 
 .detalle {
     color: #888;
     font-size: 0.9em;
-    margin: 8px 0;
+    margin: 10px 0;
 }
 
 .fecha {
     color: #AAA;
     font-size: 0.85em;
-    margin-top: 10px;
+    margin-top: 12px;
+    font-weight: 500;
 }
 
 .placeholder {
     text-align: center;
     color: #CCC;
-    padding: 40px 20px;
+    padding: 60px 20px;
     font-style: italic;
     grid-column: 1 / -1;
+    font-size: 1.05em;
 }
 
 .resultados-section {
     background: var(--light);
     padding: 30px;
-    border-radius: 10px;
+    border-radius: 12px;
     border-left: 5px solid var(--primary);
 }
 
@@ -236,51 +258,18 @@ section h2 {
     padding: 25px;
     border-radius: 8px;
     overflow-x: auto;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+    max-height: 400px;
+    overflow-y: auto;
 }
 
 #resultadosText {
     font-family: 'Courier New', monospace;
     font-size: 0.95em;
-    line-height: 1.6;
+    line-height: 1.7;
     white-space: pre-wrap;
     word-wrap: break-word;
     color: var(--dark);
-}
-
-.info-section {
-    background: var(--light);
-    padding: 30px;
-    border-radius: 10px;
-    margin-top: 50px;
-    border-top: 4px solid var(--success);
-}
-
-.feature {
-    background: white;
-    padding: 25px;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.feature h3 {
-    color: var(--primary);
-    margin-bottom: 15px;
-    font-size: 1.1em;
-}
-
-.feature ul {
-    list-style: none;
-}
-
-.feature li {
-    padding: 8px 0;
-    color: #555;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.95em;
-}
-
-.feature li:last-child {
-    border-bottom: none;
 }
 
 footer {
@@ -302,14 +291,25 @@ footer p {
         font-size: 2em;
     }
 
+    header p {
+        font-size: 1em;
+    }
+
     .predicciones-grid,
-    .sorteos-grid,
-    .features-grid {
+    .sorteos-grid {
         grid-template-columns: 1fr;
+    }
+
+    main {
+        padding: 20px 10px;
     }
 
     section h2 {
         font-size: 1.5em;
+    }
+
+    .numero {
+        font-size: 2.5em;
     }
 }
 
@@ -318,11 +318,24 @@ footer p {
         padding: 10px;
     }
 
+    header {
+        padding: 30px 15px;
+    }
+
     header h1 {
         font-size: 1.5em;
     }
 
+    .card {
+        padding: 20px 15px;
+    }
+
     .numero {
         font-size: 2em;
+    }
+
+    .btn {
+        padding: 12px 30px;
+        font-size: 1em;
     }
 }
