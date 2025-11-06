@@ -57,7 +57,7 @@
             await fetch('/start-analysis', {method: 'POST'});
             
             setTimeout(async () => {
-                const res = await fetch('/get-resultados');
+                const res = await fetch('/get-results');
                 const data = await res.json();
                 document.getElementById('resultadosText').textContent = data.result || 'Completado';
                 document.getElementById('loading').classList.add('hidden');
