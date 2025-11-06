@@ -805,6 +805,46 @@ def ejecutar_scraping_y_analisis():
         print("\n Completado!")
     except Exception as e:
         analisis_texto = f"Error: {str(e)}"
+def cargar_predicciones_json():
+    """Cargar predicciones desde el archivo JSON"""
+    try:
+        if os.path.exists(ruta_archivo):
+            with open(ruta_archivo, 'r', encoding='utf-8') as f:
+                datos = json.load(f)
+                resultado = {}
+                for loteria, sorteos in datos.items():
+                    if sorteos and isinstance(sorteos, list):
+                        ultimo = sorteos[0]
+                        numero = str(ultimo.get("numero", "N/A")).zfill(4)
+                        signo = str(ultimo.get("serie", "N/A")).lower()
+                        if numero != "N/A" and signo != "n/a":
+                            resultado[loteria] = f"{numero} {signo}"
+                        else:
+                            resultado[loteria] = numero
+                return resultado
+    except Exception as e:
+        print(f"Error: {e}")
+    return {}
+
+def cargar_sorteos_json():
+    """Cargar sorteos desde el archivo JSON"""
+    try:
+        if os.path.exists(ruta_archivo):
+            with open(ruta_archivo, 'r', encoding='utf-8') as f:
+                datos = json.load(f)
+                resultado = {}
+                for loteria, sorteos in datos.items():
+                    if sorteos and isinstance(sorteos, list):
+                        ultimo = sorteos[0]
+                        resultado[loteria] = {
+                            "numero": str(ultimo.get("numero", "N/A")),
+                            "signo": str(ultimo.get("serie", "N/A")),
+                            "fecha": str(ultimo.get("fecha", "N/A"))
+                        }
+                return resultado
+    except Exception as e:
+        print(f"Error: {e}")
+    return {}
 
 @app.route('/health')
 def health():
@@ -830,7 +870,10 @@ def get_results():
 
 @app.route("/get-sorteos", methods=["GET"])
 def get_sorteos():
-    return jsonify(datos_ultimo_sorteo)
+    global datos_ultimo_sorteo
+    sorteos_json = cargar_sorteos_json()
+    sorteos_cargados = sorteos_json if sorteos_json else datos_ultimo_sorteo
+    return jsonify(sorteos_cargados)
 
 @app.route("/get-predicciones", methods=["GET"])
 def get_predicciones():
