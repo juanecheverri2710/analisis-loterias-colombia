@@ -1,4 +1,4 @@
-﻿import json
+﻿﻿import json
 import threading
 import shutil
 import os
@@ -468,7 +468,7 @@ def analizar_numeros_especificos(nombre_archivo):
     if df.empty:
         return
     print("\n" + "="*80)
-    print(" ANLISIS DETALLADO DE NMEROS ESPECFICOS")
+    print(" ANÁLISIS DETALLADO DE NÚMEROS ESPECÍFICOS")
     print("="*80)
     numeros_objetivo = ["419", "116", "2710", "1012", "6888"]
     for numero in numeros_objetivo:
@@ -503,7 +503,7 @@ def entrenar_ensemble_mejorado(df_ml):
         y = df_ml['label']
         
         print("\n" + "="*80)
-        print(" MODELO ENSEMBLE - COMBINACIN DE 3 ALGORITMOS AVANZADOS")
+        print(" MODELO ENSEMBLE - VERSIÓN RÁPIDA (100 árboles cada uno)")
         print("="*80)
         print(f"\n DISTRIBUCIN DE DATOS:")
         print(f" Clase 0 (No saldr): {(y==0).sum():,}")
@@ -535,12 +535,12 @@ def entrenar_ensemble_mejorado(df_ml):
         print(f"  Datos antes: {len(y_train):,}")
         print(f"  Datos despus: {len(y_train_balanced):,}")
         
-        print(f"\n Entrenando ENSEMBLE de 3 modelos...")
+                print(f"\n Entrenando ENSEMBLE RÁPIDO de 3 modelos...")
         
-        print(f"  1 XGBoost (300 rboles)...")
+        print(f"  1 XGBoost (100 rboles - RÁPIDO)...")
         modelo_xgb = XGBClassifier(
-            n_estimators=300,
-            max_depth=6,
+            n_estimators=100,
+            max_depth=5,
             learning_rate=0.05,
             subsample=0.8,
             colsample_bytree=0.8,
@@ -551,10 +551,10 @@ def entrenar_ensemble_mejorado(df_ml):
         )
         modelo_xgb.fit(X_train_balanced, y_train_balanced, verbose=False)
         
-        print(f"  2 LightGBM (300 rboles)...")
+                print(f"  2 LightGBM (100 rboles - RÁPIDO)...")
         modelo_lgb = LGBMClassifier(
-            n_estimators=300,
-            max_depth=6,
+            n_estimators=100,
+            max_depth=5,
             learning_rate=0.05,
             random_state=42,
             verbose=-1,
@@ -562,10 +562,10 @@ def entrenar_ensemble_mejorado(df_ml):
         )
         modelo_lgb.fit(X_train_balanced, y_train_balanced)
         
-        print(f"  3 Random Forest (300 rboles)...")
+                print(f"  3 Random Forest (100 rboles - RÁPIDO)...")
         modelo_rf = RandomForestClassifier(
-            n_estimators=300,
-            max_depth=6,
+            n_estimators=100,
+            max_depth=5,
             random_state=42,
             n_jobs=-1
         )
