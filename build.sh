@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-set -e
-
-pip install --upgrade pip setuptools wheel
+#!/bin/bash
+pip install --upgrade pip
 pip install -r requirements.txt
+echo "Build completado"
