@@ -39,7 +39,7 @@
             <section class="resultados-section">
                 <h2>📈 Análisis Completo</h2>
                 <div id="resultados" class="resultados-content">
-                    <pre id="resultadosText">Haz clic en "Iniciar Análisis" para ver los resultados</pre>
+                    <pre id="resultadosText">Haz clic en "Iniciar Análisis"</pre>
                 </div>
             </section>
         </main>
@@ -50,67 +50,46 @@
     </div>
 
     <script>
-        const btnAnalizar = document.getElementById('btnAnalizar');
-        const loading = document.getElementById('loading');
-        const prediccionesDiv = document.getElementById('predicciones');
-        const sorteosDiv = document.getElementById('sorteos');
-        const resultadosText = document.getElementById('resultadosText');
-
-        document.addEventListener('DOMContentLoaded', () => {
-            cargarPredicciones();
-            cargarSorteos();
-        });
-
-        btnAnalizar.addEventListener('click', async () => {
-            btnAnalizar.disabled = true;
-            loading.classList.remove('hidden');
-            resultadosText.textContent = 'Iniciando análisis...';
-
-            try {
-                const response = await fetch('/start-analysis', { method: 'POST' });
-                console.log('Análisis iniciado');
-
-                let intentos = 0;
-                const verificar = setInterval(async () => {
-                    intentos++;
-                    try {
-                        const resResultados = await fetch('/get-results');
-                        const dataResultados = await resResultados.json();
-                        
-                        if (dataResultados.result && dataResultados.result.length > 30) {
-                            console.log('Resultados obtenidos');
-                            clearInterval(verificar);
-                            loading.classList.add('hidden');
-                            resultadosText.textContent = dataResultados.result;
-                            await cargarPredicciones();
-                            await cargarSorteos();
-                            btnAnalizar.disabled = false;
-                        }
-                    } catch (e) {
-                        console.error('Error verificando:', e);
-                    }
-
-                    if (intentos > 120) {
-                        clearInterval(verificar);
-                        loading.classList.add('hidden');
-                        resultadosText.textContent = 'Análisis completado. Revisa los datos arriba.';
-                        await cargarPredicciones();
-                        await cargarSorteos();
-                        btnAnalizar.disabled = false;
-                    }
-                }, 1000);
-
-            } catch (error) {
-                console.error('Error:', error);
-                loading.classList.add('hidden');
-                resultadosText.textContent = 'Error: ' + error.message;
-                btnAnalizar.disabled = false;
-            }
+        document.getElementById('btnAnalizar').addEventListener('click', async function() {
+            this.disabled = true;
+            document.getElementById('loading').classList.remove('hidden');
+            
+            await fetch('/start-analysis', {method: 'POST'});
+            
+            setTimeout(async () => {
+                const res = await fetch('/get-resultados');
+                const data = await res.json();
+                document.getElementById('resultadosText').textContent = data.result || 'Completado';
+                document.getElementById('loading').classList.add('hidden');
+                
+                await cargarPredicciones();
+                await cargarSorteos();
+                this.disabled = false;
+            }, 2000);
         });
 
         async function cargarPredicciones() {
-            try {
-                const response = await fetch('/get-predicciones');
-                const data = await response.json();
+            const res = await fetch('/get-predicciones');
+            const data = await res.json();
+            let html = '';
+            for (let [loteria, pred] of Object.entries(data)) {
+                html += `<div class="card prediccion"><h3>${loteria}</h3><div class="numero">${pred.split(' ')[0]}</div><p class="signo">${pred.split(' ')[1] || ''}</p></div>`;
+            }
+            document.getElementById('predicciones').innerHTML = html || '<p class="placeholder">Sin datos</p>';
+        }
 
-                console.log('Predicciones:',
+        async function cargarSorteos() {
+            const res = await fetch('/get-sorteos');
+            const data = await res.json();
+            let html = '';
+            for (let [loteria, info] of Object.entries(data)) {
+                html += `<div class="card sorteo"><h3>${loteria}</h3><div class="numero">${info.numero}</div><p class="detalle">Signo: ${info.signo}</p><p class="fecha">${info.fecha}</p></div>`;
+            }
+            document.getElementById('sorteos').innerHTML = html || '<p class="placeholder">Sin datos</p>';
+        }
+
+        cargarPredicciones();
+        cargarSorteos();
+    </script>
+</body>
+</html>
