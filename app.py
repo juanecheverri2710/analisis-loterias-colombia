@@ -1,4 +1,4 @@
-import json
+﻿import json
 import threading
 import shutil
 import os
@@ -49,12 +49,12 @@ cache_timestamp = 0
 CALENDARIO_LOTERIAS = {
     "lunes": ["Cundinamarca", "Tolima"],
     "martes": ["Cruz Roja", "Huila"],
-    "miércoles": ["Manizales", "Valle", "Meta"],
-    "jueves": ["Bogotá", "Quindío"],
-    "viernes": ["Medellín", "Santander", "Risaralda"],
-    "sábado": ["Boyacá", "Cauca"],
-    "astro luna": ["todos los días"],
-    "astro sol": ["todos los días"],
+    "mircoles": ["Manizales", "Valle", "Meta"],
+    "jueves": ["Bogot", "Quindo"],
+    "viernes": ["Medelln", "Santander", "Risaralda"],
+    "sbado": ["Boyac", "Cauca"],
+    "astro luna": ["todos los das"],
+    "astro sol": ["todos los das"],
 }
 
 DIAS_LOTERIA = {
@@ -65,12 +65,12 @@ DIAS_LOTERIA = {
     "Manizales": [2],
     "Valle": [2],
     "Meta": [2],
-    "Bogotá": [3],
-    "Quindío": [3],
-    "Medellín": [4],
+    "Bogot": [3],
+    "Quindo": [3],
+    "Medelln": [4],
     "Santander": [4],
     "Risaralda": [4],
-    "Boyacá": [5],
+    "Boyac": [5],
     "Cauca": [5],
     "Astro Luna": [0, 1, 2, 3, 4, 5, 6],
     "Astro Sol": [0, 1, 2, 3, 4, 5, 6]
@@ -108,7 +108,7 @@ def obtener_resultados_loteria_tabla(nombre, url):
     try:
         response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10, verify=False)
         if response.status_code != 200:
-            print(f⚠️ {nombre}: Error HTTP {response.status_code}")
+            print(f {nombre}: Error HTTP {response.status_code}")
             return resultados
         soup = BeautifulSoup(response.text, "html.parser")
         tablas = soup.find_all("table")
@@ -146,10 +146,10 @@ def obtener_resultados_loteria_tabla(nombre, url):
                     "serie": serie,
                     "fecha": fecha.strftime("%Y-%m-%d")
                 })
-        print(f"✅ {nombre}: {len(resultados)} resultados")
+        print(f" {nombre}: {len(resultados)} resultados")
         return resultados
     except Exception as e:
-        print(f"❌ {nombre}: Error")
+        print(f" {nombre}: Error")
         return resultados
 
 def obtener_resultados_superastro_mejorado(tipo_loteria, fecha_inicio, max_intentos=5):
@@ -174,7 +174,7 @@ def obtener_resultados_superastro_mejorado(tipo_loteria, fecha_inicio, max_inten
         else:
             return resultados
         
-        print(f"🔄 {nombre_loteria}: Descargando histórico de 5 años...")
+        print(f" {nombre_loteria}: Descargando histrico de 5 aos...")
         
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
@@ -185,7 +185,7 @@ def obtener_resultados_superastro_mejorado(tipo_loteria, fecha_inicio, max_inten
         response = None
         url_exitosa = None
         
-        print(f"   📡 Intentando API: {api_url}")
+        print(f"    Intentando API: {api_url}")
         try:
             response = requests.get(api_url, headers=headers, timeout=15, verify=False)
             if response.status_code == 200:
@@ -218,14 +218,14 @@ def obtener_resultados_superastro_mejorado(tipo_loteria, fecha_inicio, max_inten
                                 continue
                     
                     if resultados:
-                        print(f"✅ {nombre_loteria}: {len(resultados)} resultados desde API JSON")
+                        print(f" {nombre_loteria}: {len(resultados)} resultados desde API JSON")
                         return resultados
                 except:
-                    print(f"   ⚠️ Respuesta API no es JSON válido")
+                    print(f"    Respuesta API no es JSON vlido")
         except Exception as e:
-            print(f"   ❌ Error de API: {str(e)[:50]}")
+            print(f"    Error de API: {str(e)[:50]}")
         
-        print(f"   🔄 Intentando URLs alternativas con scraping...")
+        print(f"    Intentando URLs alternativas con scraping...")
         for url in urls_alternativas:
             print(f"   Intentando: {url}")
             for intento in range(max_intentos):
@@ -233,7 +233,7 @@ def obtener_resultados_superastro_mejorado(tipo_loteria, fecha_inicio, max_inten
                     response = requests.get(url, headers=headers, timeout=15, verify=False)
                     if response.status_code == 200:
                         url_exitosa = url
-                        print(f"   ✅ Conexión exitosa")
+                        print(f"    Conexin exitosa")
                         
                         soup = BeautifulSoup(response.text, 'html.parser')
                         tablas = soup.find_all('table')
@@ -271,13 +271,13 @@ def obtener_resultados_superastro_mejorado(tipo_loteria, fecha_inicio, max_inten
                                         continue
                             
                             if contador > 0:
-                                print(f"✅ {nombre_loteria}: {contador} resultados desde {url}")
+                                print(f" {nombre_loteria}: {contador} resultados desde {url}")
                                 return resultados
                     else:
-                        print(f"   ⚠️ Error {response.status_code}")
+                        print(f"    Error {response.status_code}")
                         time.sleep(1)
                 except requests.exceptions.Timeout:
-                    print(f"   ⏱️ Timeout (intento {intento+1}/{max_intentos})")
+                    print(f"    Timeout (intento {intento+1}/{max_intentos})")
                     time.sleep(2)
                 except Exception as e:
                     print(f"   Error: {str(e)[:50]}")
@@ -287,10 +287,10 @@ def obtener_resultados_superastro_mejorado(tipo_loteria, fecha_inicio, max_inten
                 break
         
         if not resultados:
-            print(f"⚠️ {nombre_loteria}: No se encontraron datos en línea, generando datos de fallback...")
+            print(f" {nombre_loteria}: No se encontraron datos en lnea, generando datos de fallback...")
             
             signos_zodiacales = [
-                'aries', 'tauro', 'géminis', 'cáncer', 'leo', 'virgo',
+                'aries', 'tauro', 'gminis', 'cncer', 'leo', 'virgo',
                 'libra', 'escorpio', 'sagitario', 'capricornio', 'acuario', 'piscis'
             ]
             
@@ -313,28 +313,28 @@ def obtener_resultados_superastro_mejorado(tipo_loteria, fecha_inicio, max_inten
                 fecha_actual += timedelta(days=1)
                 contador += 1
             
-            print(f"✅ {nombre_loteria}: {contador} resultados generados (fallback)")
+            print(f" {nombre_loteria}: {contador} resultados generados (fallback)")
         
         return resultados
     
     except Exception as e:
-        print(f"❌ {tipo_loteria.upper()}: Error general - {str(e)[:100]}")
+        print(f" {tipo_loteria.upper()}: Error general - {str(e)[:100]}")
         return resultados
 
 def obtener_todas_loterias():
     loterias_urls = {
-        "Boyacá": "https://resultadodelaloteria.com/colombia/loteria-de-boyaca",
+        "Boyac": "https://resultadodelaloteria.com/colombia/loteria-de-boyaca",
         "Cruz Roja": "https://resultadodelaloteria.com/colombia/loteria-de-la-cruz-roja",
         "Manizales": "https://resultadodelaloteria.com/colombia/loteria-de-manizales",
         "Cundinamarca": "https://resultadodelaloteria.com/colombia/loteria-de-cundinamarca",
         "Tolima": "https://resultadodelaloteria.com/colombia/loteria-del-tolima",
-        "Medellín": "https://resultadodelaloteria.com/colombia/loteria-de-medellin",
+        "Medelln": "https://resultadodelaloteria.com/colombia/loteria-de-medellin",
         "Santander": "https://resultadodelaloteria.com/colombia/loteria-de-santander",
         "Huila": "https://resultadodelaloteria.com/colombia/loteria-del-huila",
         "Risaralda": "https://resultadodelaloteria.com/colombia/loteria-de-risaralda",
-        "Bogotá": "https://resultadodelaloteria.com/colombia/loteria-de-bogota",
+        "Bogot": "https://resultadodelaloteria.com/colombia/loteria-de-bogota",
         "Meta": "https://resultadodelaloteria.com/colombia/loteria-del-meta",
-        "Quindío": "https://resultadodelaloteria.com/colombia/loteria-del-quindio",
+        "Quindo": "https://resultadodelaloteria.com/colombia/loteria-del-quindio",
         "Valle": "https://resultadodelaloteria.com/colombia/loteria-del-valle",
         "Cauca": "https://resultadodelaloteria.com/colombia/loteria-del-cauca"
     }
@@ -399,9 +399,9 @@ def guardar_resultado_loteria(nuevo_resultado):
         with open(ruta_archivo, 'w', encoding='utf-8') as f:
             json.dump(datos, f, indent=2, ensure_ascii=False)
         
-        print(f"💾 Datos guardados correctamente en {ruta_archivo}")
+        print(f" Datos guardados correctamente en {ruta_archivo}")
     except Exception as e:
-        print(f"❌ Error guardando datos: {str(e)}")
+        print(f" Error guardando datos: {str(e)}")
 
 def generar_datos_ultimo_sorteo():
     global datos_ultimo_sorteo
@@ -417,9 +417,9 @@ def generar_datos_ultimo_sorteo():
                     "signo": ultimo.get("serie", "N/A"),
                     "fecha": ultimo.get("fecha", "N/A")
                 }
-        print(f"✅ Datos del último sorteo cargados: {len(datos_ultimo_sorteo)} loterías")
+        print(f" Datos del ltimo sorteo cargados: {len(datos_ultimo_sorteo)} loteras")
     except Exception as e:
-        print(f"⚠️ Error cargando datos: {str(e)}")
+        print(f" Error cargando datos: {str(e)}")
 
 def generar_predicciones_diarias():
     global predicciones_diarias, cache_predicciones, cache_timestamp
@@ -476,22 +476,22 @@ def generar_predicciones_diarias():
                         "signo": signo_predicho,
                         "apariciones": top_numeros[0][1]
                     }
-                    print(f"🎯 {loteria_nombre}: Número {numero_predicho} (Signo: {signo_predicho}) - {top_numeros[0][1]} apariciones")
+                    print(f" {loteria_nombre}: Nmero {numero_predicho} (Signo: {signo_predicho}) - {top_numeros[0][1]} apariciones")
                 else:
                     predicciones_diarias[loteria_nombre] = {
                         "numero": numero_predicho,
                         "signo": "N/A",
                         "apariciones": top_numeros[0][1]
                     }
-                    print(f"🎯 {loteria_nombre}: Número {numero_predicho} - {top_numeros[0][1]} apariciones")
+                    print(f" {loteria_nombre}: Nmero {numero_predicho} - {top_numeros[0][1]} apariciones")
         
         cache_predicciones = predicciones_diarias
         cache_timestamp = ahora
         
-        print(f"\n✅ Predicciones generadas para HOY ({datetime.now().strftime('%A')})")
-        print(f" Loterías que juegan hoy: {len(predicciones_diarias)}")
+        print(f"\n Predicciones generadas para HOY ({datetime.now().strftime('%A')})")
+        print(f" Loteras que juegan hoy: {len(predicciones_diarias)}")
     except Exception as e:
-        print(f"⚠️ Error generando predicciones: {str(e)}")
+        print(f" Error generando predicciones: {str(e)}")
 
 def cargar_a_dataframe(nombre_archivo):
     try:
@@ -520,41 +520,41 @@ def analizar_patrones(nombre_archivo):
     if df.empty:
         return
     print("\n" + "="*80)
-    print("📊 ANÁLISIS GENERAL (ÚLTIMOS 5 AÑOS)")
+    print(" ANLISIS GENERAL (LTIMOS 5 AOS)")
     print("="*80)
-    print(f"\n📈 Total de registros: {len(df)}")
-    print(f"📅 Período: 1825 días (5 años)")
-    print(f"🎰 Total de loterías: {df['loteria'].nunique()}")
-    print("\n🎯 RESULTADOS POR LOTERÍA:")
-    print("─" * 80)
+    print(f"\n Total de registros: {len(df)}")
+    print(f" Perodo: 1825 das (5 aos)")
+    print(f" Total de loteras: {df['loteria'].nunique()}")
+    print("\n RESULTADOS POR LOTERA:")
+    print("" * 80)
     conteo = df.groupby("loteria").size().sort_values(ascending=False)
     for idx, (loteria, cantidad) in enumerate(conteo.items(), 1):
         porcentaje = (cantidad / len(df)) * 100
-        barra = "█" * int(porcentaje / 3)
-        print(f" {idx:2d}. {loteria:20s} │ {cantidad:4d} │ {porcentaje:5.1f}% {barra}")
-    print("\n🏆 TOP 15 NÚMEROS MÁS COMUNES:")
-    print("─" * 80)
+        barra = "" * int(porcentaje / 3)
+        print(f" {idx:2d}. {loteria:20s}  {cantidad:4d}  {porcentaje:5.1f}% {barra}")
+    print("\n TOP 15 NMEROS MS COMUNES:")
+    print("" * 80)
     top = df["numero"].value_counts().head(15)
     for i, (num, cnt) in enumerate(top.items(), 1):
         loteria_top = df[df["numero"] == num]["loteria"].value_counts().idxmax()
         signo_top = df[df["numero"] == num]["serie"].mode()[0] if not df[df["numero"] == num]["serie"].empty else "N/A"
-        print(f" {i:2d}. {num.zfill(4)} │ {cnt:3d}x │ Lotería: {loteria_top:15s} │ Signo: {signo_top}")
+        print(f" {i:2d}. {num.zfill(4)}  {cnt:3d}x  Lotera: {loteria_top:15s}  Signo: {signo_top}")
 
 def analizar_todos_numeros(nombre_archivo):
     df = cargar_a_dataframe(nombre_archivo)
     if df.empty:
         return
     print("\n" + "="*80)
-    print("📊 ESTADÍSTICAS DE NÚMEROS (0000-9999)")
+    print(" ESTADSTICAS DE NMEROS (0000-9999)")
     print("="*80)
     total_posibles = 10000
     numeros_unicos = df["numero"].unique()
     numeros_que_cayeron = len(numeros_unicos)
     numeros_que_no_cayeron = total_posibles - numeros_que_cayeron
-    print(f"\n✅ Números que han salido: {numeros_que_cayeron} ({numeros_que_cayeron/total_posibles*100:.2f}%)")
-    print(f"❌ Números que NO han salido: {numeros_que_no_cayeron} ({numeros_que_no_cayeron/total_posibles*100:.2f}%)")
-    print("\n🔥 TOP 20 NÚMEROS MÁS REPETITIVOS:")
-    print("─" * 80)
+    print(f"\n Nmeros que han salido: {numeros_que_cayeron} ({numeros_que_cayeron/total_posibles*100:.2f}%)")
+    print(f" Nmeros que NO han salido: {numeros_que_no_cayeron} ({numeros_que_no_cayeron/total_posibles*100:.2f}%)")
+    print("\n TOP 20 NMEROS MS REPETITIVOS:")
+    print("" * 80)
     top_20 = df["numero"].value_counts().head(20)
     for idx, (numero, freq) in enumerate(top_20.items(), 1):
         df_num = df[df["numero"] == numero]
@@ -568,41 +568,41 @@ def analizar_todos_numeros(nombre_archivo):
         else:
             signo_top = "N/A"
             signo_count = 0
-        print(f" {idx:2d}. {numero.zfill(4)}: {freq:3d}x │ Lotería: {loteria_top:12s}({loteria_count:2d}) │ Signo: {signo_top:10s}({signo_count:2d})")
+        print(f" {idx:2d}. {numero.zfill(4)}: {freq:3d}x  Lotera: {loteria_top:12s}({loteria_count:2d})  Signo: {signo_top:10s}({signo_count:2d})")
 
 def analizar_numeros_especificos(nombre_archivo):
     df = cargar_a_dataframe(nombre_archivo)
     if df.empty:
         return
     print("\n" + "="*80)
-    print("🎯 ANÁLISIS DETALLADO DE NÚMEROS ESPECÍFICOS")
+    print(" ANLISIS DETALLADO DE NMEROS ESPECFICOS")
     print("="*80)
     numeros_objetivo = ["419", "116", "2710", "1012", "6888"]
     for numero in numeros_objetivo:
         df_num = df[df["numero"] == numero]
         if df_num.empty:
-            print(f"\n❌ NÚMERO: {numero.zfill(4)} - No encontrado en histórico")
+            print(f"\n NMERO: {numero.zfill(4)} - No encontrado en histrico")
             continue
         total_apariciones = len(df_num)
-        print(f"\n{'═'*80}")
-        print(f"✅ NÚMERO: {numero.zfill(4)}")
-        print(f"{'═'*80}")
-        print(f"📊 Apariciones totales: {total_apariciones}")
-        print(f"\n🎰 FRECUENCIA POR LOTERÍA:")
-        print("─" * 80)
+        print(f"\n{''*80}")
+        print(f" NMERO: {numero.zfill(4)}")
+        print(f"{''*80}")
+        print(f" Apariciones totales: {total_apariciones}")
+        print(f"\n FRECUENCIA POR LOTERA:")
+        print("" * 80)
         freq_loteria = df_num["loteria"].value_counts().sort_values(ascending=False)
         for loteria, cnt in freq_loteria.items():
             porcentaje = (cnt / total_apariciones) * 100
-            barra = "█" * int(porcentaje / 4)
-            print(f" • {loteria:20s} │ {cnt:3d}x │ {porcentaje:5.1f}% {barra}")
+            barra = "" * int(porcentaje / 4)
+            print(f"  {loteria:20s}  {cnt:3d}x  {porcentaje:5.1f}% {barra}")
         df_signos = df_num[df_num["serie"] != "No disponible"]
         if not df_signos.empty:
-            print(f"\n♈ SIGNOS ZODIACALES PARA {numero.zfill(4)}:")
-            print("─" * 80)
+            print(f"\n SIGNOS ZODIACALES PARA {numero.zfill(4)}:")
+            print("" * 80)
             freq_signos = df_signos["serie"].value_counts()
             for signo, cnt in freq_signos.items():
                 porcentaje = (cnt / len(df_signos)) * 100
-                print(f" ♈ {signo:15s} │ {cnt:3d}x │ {porcentaje:5.1f}%")
+                print(f"  {signo:15s}  {cnt:3d}x  {porcentaje:5.1f}%")
 
 def entrenar_ensemble_mejorado(df_ml):
     try:
@@ -610,11 +610,11 @@ def entrenar_ensemble_mejorado(df_ml):
         y = df_ml['label']
         
         print("\n" + "="*80)
-        print("🤖 MODELO ENSEMBLE - COMBINACIÓN DE 3 ALGORITMOS AVANZADOS")
+        print(" MODELO ENSEMBLE - COMBINACIN DE 3 ALGORITMOS AVANZADOS")
         print("="*80)
-        print(f"\n📊 DISTRIBUCIÓN DE DATOS:")
-        print(f" Clase 0 (No saldrá): {(y==0).sum():,}")
-        print(f" Clase 1 (Saldrá): {(y==1).sum():,}")
+        print(f"\n DISTRIBUCIN DE DATOS:")
+        print(f" Clase 0 (No saldr): {(y==0).sum():,}")
+        print(f" Clase 1 (Saldr): {(y==1).sum():,}")
         print(f" Ratio: 1:{(y==0).sum() / max((y==1).sum(), 1):.1f}")
         
         X_train, X_test, y_train, y_test = train_test_split(
@@ -632,19 +632,19 @@ def entrenar_ensemble_mejorado(df_ml):
         )
         scale_pos_weight = class_weights[1] / class_weights[0]
         
-        print(f"\n⚖️ PESOS DE CLASE:")
+        print(f"\n PESOS DE CLASE:")
         print(f" Clase 0: {class_weights[0]:.3f}")
         print(f" Clase 1: {class_weights[1]:.3f}")
         
-        print(f"\n🔄 Aplicando SMOTE para balanceo...")
+        print(f"\n Aplicando SMOTE para balanceo...")
         smote = SMOTE(random_state=42, k_neighbors=3)
         X_train_balanced, y_train_balanced = smote.fit_resample(X_train_scaled, y_train)
-        print(f" ✅ Datos antes: {len(y_train):,}")
-        print(f" ✅ Datos después: {len(y_train_balanced):,}")
+        print(f"  Datos antes: {len(y_train):,}")
+        print(f"  Datos despus: {len(y_train_balanced):,}")
         
-        print(f"\n🚀 Entrenando ENSEMBLE de 3 modelos...")
+        print(f"\n Entrenando ENSEMBLE de 3 modelos...")
         
-        print(f"  1️⃣ XGBoost (300 árboles)...")
+        print(f"  1 XGBoost (300 rboles)...")
         modelo_xgb = XGBClassifier(
             n_estimators=300,
             max_depth=6,
@@ -658,7 +658,7 @@ def entrenar_ensemble_mejorado(df_ml):
         )
         modelo_xgb.fit(X_train_balanced, y_train_balanced, verbose=False)
         
-        print(f"  2️⃣ LightGBM (300 árboles)...")
+        print(f"  2 LightGBM (300 rboles)...")
         modelo_lgb = LGBMClassifier(
             n_estimators=300,
             max_depth=6,
@@ -669,7 +669,7 @@ def entrenar_ensemble_mejorado(df_ml):
         )
         modelo_lgb.fit(X_train_balanced, y_train_balanced)
         
-        print(f"  3️⃣ Random Forest (300 árboles)...")
+        print(f"  3 Random Forest (300 rboles)...")
         modelo_rf = RandomForestClassifier(
             n_estimators=300,
             max_depth=6,
@@ -678,7 +678,7 @@ def entrenar_ensemble_mejorado(df_ml):
         )
         modelo_rf.fit(X_train_balanced, y_train_balanced)
         
-        print(f"\n🔗 Combinando modelos con pesos: XGB(3), LGB(2), RF(1)...")
+        print(f"\n Combinando modelos con pesos: XGB(3), LGB(2), RF(1)...")
         ensemble = VotingClassifier(
             estimators=[
                 ('xgb', modelo_xgb),
@@ -692,39 +692,39 @@ def entrenar_ensemble_mejorado(df_ml):
         y_pred = ensemble.predict(X_test_scaled)
         y_pred_proba = ensemble.predict_proba(X_test_scaled)[:, 1]
         
-        print(f"\n📈 RESULTADOS DEL ENSEMBLE:")
-        print("─" * 80)
+        print(f"\n RESULTADOS DEL ENSEMBLE:")
+        print("" * 80)
         print(classification_report(y_test, y_pred,
-            target_names=['No saldrá', 'Saldrá'],
+            target_names=['No saldr', 'Saldr'],
             zero_division=0))
         
         cm = confusion_matrix(y_test, y_pred)
-        print(f"\n📊 MATRIZ DE CONFUSIÓN:")
-        print("─" * 80)
+        print(f"\n MATRIZ DE CONFUSIN:")
+        print("" * 80)
         print(f" True Negatives: {cm[0,0]:,}")
         print(f" False Positives: {cm[0,1]:,}")
         print(f" False Negatives: {cm[1,0]:,}")
         print(f" True Positives: {cm[1,1]:,}")
         
-        print(f"\n🎯 BÚSQUEDA DE THRESHOLD ÓPTIMO:")
-        print("─" * 80)
+        print(f"\n BSQUEDA DE THRESHOLD PTIMO:")
+        print("" * 80)
         precisions, recalls, thresholds = precision_recall_curve(y_test, y_pred_proba)
         f1_scores = 2 * (precisions * recalls) / (precisions + recalls + 1e-10)
         best_idx = np.argmax(f1_scores)
         best_threshold = thresholds[best_idx] if best_idx < len(thresholds) else 0.5
-        print(f" Threshold óptimo: {best_threshold:.3f}")
+        print(f" Threshold ptimo: {best_threshold:.3f}")
         print(f" F1-Score: {f1_scores[best_idx]:.3f}")
         
         y_pred_optimized = (y_pred_proba >= best_threshold).astype(int)
-        print(f"\n✅ RESULTADOS CON THRESHOLD ÓPTIMO ({best_threshold:.3f}):")
-        print("─" * 80)
+        print(f"\n RESULTADOS CON THRESHOLD PTIMO ({best_threshold:.3f}):")
+        print("" * 80)
         print(classification_report(y_test, y_pred_optimized,
-            target_names=['No saldrá', 'Saldrá'],
+            target_names=['No saldr', 'Saldr'],
             zero_division=0))
         
         return ensemble, best_threshold
     except Exception as e:
-        print(f"❌ Error en modelo: {str(e)}")
+        print(f" Error en modelo: {str(e)}")
         return None, 0.5
 
 def analisis_con_modelo_mejorado():
@@ -742,14 +742,14 @@ def analisis_con_modelo_mejorado():
                 })
         df = pd.DataFrame(filas)
         if df.empty or len(df) < 100:
-            print("\n⚠️ Datos insuficientes para entrenar modelo")
+            print("\n Datos insuficientes para entrenar modelo")
             return
         loteria_encoder = {lot: idx for idx, lot in enumerate(df['loteria'].unique())}
         df['loteria_encoded'] = df['loteria'].map(loteria_encoder)
         numeros = df['numero'].unique()
         fechas_ordenadas = sorted(df['fecha'].unique())
         data_ml = []
-        print("\n🔄 Preparando dataset para modelo...")
+        print("\n Preparando dataset para modelo...")
         for i in range(len(fechas_ordenadas) - 1):
             fecha_actual = fechas_ordenadas[i]
             fecha_limite = fecha_actual + timedelta(days=30)
@@ -768,25 +768,25 @@ def analisis_con_modelo_mejorado():
         if len(df_ml) >= 100:
             modelo_ia, threshold = entrenar_ensemble_mejorado(df_ml)
             if modelo_ia:
-                print(f"\n💾 Modelo ENSEMBLE entrenado exitosamente")
-                print(f" Threshold óptimo: {threshold:.3f}")
+                print(f"\n Modelo ENSEMBLE entrenado exitosamente")
+                print(f" Threshold ptimo: {threshold:.3f}")
     except Exception as e:
-        print(f"❌ Error: {str(e)}")
+        print(f" Error: {str(e)}")
 
 def ejecutar_scraping_y_analisis():
     global analisis_texto
     try:
-        print("\n🔄 Iniciando análisis...")
+        print("\n Iniciando anlisis...")
         crear_o_validar_archivo_json()
         asegurar_carpeta_static()
         with lock:
-            print("📂 Cargando histórico...")
+            print(" Cargando histrico...")
             historico = cargar_historial(ruta_archivo)
-            print("🌐 Consultando loterías...")
+            print(" Consultando loteras...")
             nuevos = obtener_todas_loterias()
-            print("\n🔗 Combinando datos...")
+            print("\n Combinando datos...")
             combinado = combinar_resultados_acumulativo(historico, nuevos)
-            print("\n💾 Guardando...")
+            print("\n Guardando...")
             guardar_resultado_loteria(combinado)
             copiar_json_a_static()
             generar_datos_ultimo_sorteo()
@@ -802,7 +802,7 @@ def ejecutar_scraping_y_analisis():
             analisis_con_modelo_mejorado()
             sys.stdout = old_stdout
             analisis_texto = buffer.getvalue()
-        print("\n✅ ¡Completado!")
+        print("\n Completado!")
     except Exception as e:
         analisis_texto = f"Error: {str(e)}"
 
@@ -818,7 +818,7 @@ def index():
 def start_analysis():
     thread = threading.Thread(target=ejecutar_scraping_y_analisis, daemon=True)
     thread.start()
-    return jsonify({"message": "Análisis iniciado."})
+    return jsonify({"message": "Anlisis iniciado."})
 
 @app.route("/get-results", methods=["GET"])
 def get_results():
@@ -826,7 +826,7 @@ def get_results():
     if analisis_texto:
         return jsonify({"result": analisis_texto})
     else:
-        return jsonify({"result": "Resultados aún no disponibles."})
+        return jsonify({"result": "Resultados an no disponibles."})
 
 @app.route("/get-sorteos", methods=["GET"])
 def get_sorteos():
@@ -857,66 +857,67 @@ if __name__ == "__main__":
     copiar_json_a_static()
     puerto = int(os.environ.get('PORT', 8000))
     print("\n" + "="*70)
-    print("🚀 SERVIDOR FLASK - KOYEB READY - OPTIMIZADO")
+    print(" SERVIDOR FLASK - KOYEB READY - OPTIMIZADO")
     print("="*70)
-    print(f"\n✅ Puerto: {puerto}")
-    print(f"✅ Health check: /health")
-    print(f"✅ Modo: Production (HTTP) + Cache + Compresión")
-    print(f"✅ Astro Luna/Sol: API JSON + Scraping + Fallback")
+    print(f"\n Puerto: {puerto}")
+    print(f" Health check: /health")
+    print(f" Modo: Production (HTTP) + Cache + Compresin")
+    print(f" Astro Luna/Sol: API JSON + Scraping + Fallback")
     print("\n" + "="*70 + "\n")
     app.run(host="0.0.0.0", port=puerto, debug=False)
 
 """
-╔════════════════════════════════════════════════════════════════════════════╗
-║            DESCRIPCIÓN TÉCNICA DEL MODELO ENSEMBLE AVANZADO                ║
-║                     CON OPTIMIZACIONES DE RENDIMIENTO                      ║
-║                      Y SOPORTE MEJORADO PARA ASTRO LUNA/SOL               ║
-╚════════════════════════════════════════════════════════════════════════════╝
+
+            DESCRIPCIN TCNICA DEL MODELO ENSEMBLE AVANZADO                
+                     CON OPTIMIZACIONES DE RENDIMIENTO                      
+                      Y SOPORTE MEJORADO PARA ASTRO LUNA/SOL               
+
 
 ARQUITECTURA DEL MODELO:
-- Tipo: Ensemble de Votación Suave (Soft Voting Classifier)
+- Tipo: Ensemble de Votacin Suave (Soft Voting Classifier)
 - Componentes: 3 algoritmos complementarios (XGBoost, LightGBM, Random Forest)
 
 ALGORITMOS INCLUIDOS:
-1. XGBoost (Peso: 3) - Gradient Boosting de segunda generación
-   - 300 árboles de decisión
-   - Profundidad máxima: 6
+1. XGBoost (Peso: 3) - Gradient Boosting de segunda generacin
+   - 300 rboles de decisin
+   - Profundidad mxima: 6
    - Tasa de aprendizaje: 0.05
-   - Regularización L1/L2 activa
+   - Regularizacin L1/L2 activa
    
 2. LightGBM (Peso: 2) - Gradient Boosting optimizado por Microsoft
-   - 300 árboles de decisión
-   - Profundidad máxima: 6
+   - 300 rboles de decisin
+   - Profundidad mxima: 6
    - Mejor rendimiento con datasets grandes
    
-3. Random Forest (Peso: 1) - Ensemble de árboles aleatorios
-   - 300 árboles paralelos
-   - Profundidad máxima: 6
+3. Random Forest (Peso: 1) - Ensemble de rboles aleatorios
+   - 300 rboles paralelos
+   - Profundidad mxima: 6
    - Reduce sesgo mediante diversidad
 
-TÉCNICAS APLICADAS:
-✅ Balanceo de clases: SMOTE
-✅ Escalado de features: StandardScaler
-✅ Validación: Train/Test Split 70-30
-✅ Pesos de clase: Calculados automáticamente
-✅ Threshold óptimo: Búsqueda basada en F1-Score
+TCNICAS APLICADAS:
+ Balanceo de clases: SMOTE
+ Escalado de features: StandardScaler
+ Validacin: Train/Test Split 70-30
+ Pesos de clase: Calculados automticamente
+ Threshold ptimo: Bsqueda basada en F1-Score
 
 SOPORTE ASTRO LUNA / ASTRO SOL:
-📡 Prioridad API JSON: apiloterias.com/api/
-🌐 Scraping alternativo: resultadodelaloteria.com
-🔄 Fallback inteligente: Generación de datos consistentes
-♈ Signos zodiacales: Integrados en predicciones
+ Prioridad API JSON: apiloterias.com/api/
+ Scraping alternativo: resultadodelaloteria.com
+ Fallback inteligente: Generacin de datos consistentes
+ Signos zodiacales: Integrados en predicciones
 
 OPTIMIZACIONES DE RENDIMIENTO:
-⚡ Caching: Predicciones cacheadas por 1 hora
-⚡ Compresión: Respuestas GZIP habilitadas
-⚡ Headers HTTP: Cache-Control con max-age 3600
-⚡ Paralelización: n_jobs=-1 en modelos
-⚡ Memory efficient: DataFrame optimizado
+ Caching: Predicciones cacheadas por 1 hora
+ Compresin: Respuestas GZIP habilitadas
+ Headers HTTP: Cache-Control con max-age 3600
+ Paralelizacin: n_jobs=-1 en modelos
+ Memory efficient: DataFrame optimizado
 
-PRECISIÓN ESPERADA: 55-70% (datos realistas)
-LÍMITE REALISTA: No es posible superar 70% en eventos aleatorios
+PRECISIN ESPERADA: 55-70% (datos realistas)
+LMITE REALISTA: No es posible superar 70% en eventos aleatorios
 
-FECHA DE CREACIÓN: 2025-11-06
-VERSIÓN: 4.0 (Ensemble + Optimizaciones + Astro Mejorado)
+FECHA DE CREACIN: 2025-11-06
+VERSIN: 4.0 (Ensemble + Optimizaciones + Astro Mejorado)
 """
+
