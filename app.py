@@ -214,6 +214,39 @@ def obtener_resultados_superastro_mejorado(tipo_loteria, fecha_inicio, max_inten
     resultados_totales["Astro Sol"] = resultados_sol
     
     return resultados_totales
+def obtener_todas_loterias():
+    loterias_urls = {
+        "Boyacá": "https://resultadodelaloteria.com/colombia/loteria-de-boyaca",
+        "Cruz Roja": "https://resultadodelaloteria.com/colombia/loteria-de-la-cruz-roja",
+        "Manizales": "https://resultadodelaloteria.com/colombia/loteria-de-manizales",
+        "Cundinamarca": "https://resultadodelaloteria.com/colombia/loteria-de-cundinamarca",
+        "Tolima": "https://resultadodelaloteria.com/colombia/loteria-del-tolima",
+        "Medellín": "https://resultadodelaloteria.com/colombia/loteria-de-medellin",
+        "Santander": "https://resultadodelaloteria.com/colombia/loteria-de-santander",
+        "Huila": "https://resultadodelaloteria.com/colombia/loteria-del-huila",
+        "Risaralda": "https://resultadodelaloteria.com/colombia/loteria-de-risaralda",
+        "Bogotá": "https://resultadodelaloteria.com/colombia/loteria-de-bogota",
+        "Meta": "https://resultadodelaloteria.com/colombia/loteria-del-meta",
+        "Quindío": "https://resultadodelaloteria.com/colombia/loteria-del-quindio",
+        "Valle": "https://resultadodelaloteria.com/colombia/loteria-del-valle",
+        "Cauca": "https://resultadodelaloteria.com/colombia/loteria-del-cauca"
+    }
+    resultados_totales = {}
+    for nombre, url in loterias_urls.items():
+        print(f"Consultando {nombre}...")
+        resultados = obtener_resultados_loteria_tabla(nombre, url)
+        resultados_totales[nombre] = resultados
+    
+    fecha_inicio = (datetime.now() - timedelta(days=1825)).strftime('%Y-%m-%d')
+    print("\nConsultando Astro Luna...")
+    resultados_luna = obtener_resultados_superastro_mejorado('luna', fecha_inicio)
+    resultados_totales["Astro Luna"] = resultados_luna
+    
+    print("\nConsultando Astro Sol...")
+    resultados_sol = obtener_resultados_superastro_mejorado('sol', fecha_inicio)
+    resultados_totales["Astro Sol"] = resultados_sol
+    
+    return resultados_totales
 
 def combinar_resultados_acumulativo(historico, nuevos):
     dfs = []
