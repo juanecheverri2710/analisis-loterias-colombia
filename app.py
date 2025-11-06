@@ -152,40 +152,6 @@ def obtener_resultados_loteria_tabla(nombre, url):
         print(f" {nombre}: Error")
         return resultados
 
-def obtener_resultados_superastro_mejorado(tipo_loteria, fecha_inicio, max_intentos=5):
-    resultados = []
-    try:
-        if tipo_loteria.lower() == 'sol':
-            nombre_loteria = 'Astro Sol'
-            api_url = "https://apiloterias.com/api/astro-sol"
-            urls_alternativas = [
-                "https://resultadodelaloteria.com/colombia/astro-sol",
-                "https://loterias.info/api/astro-sol",
-                "https://www.astrosor.com/astro-sol"
-            ]
-        elif tipo_loteria.lower() == 'luna':
-            nombre_loteria = 'Astro Luna'
-            api_url = "https://apiloterias.com/api/astro-luna"
-            urls_alternativas = [
-                "https://resultadodelaloteria.com/colombia/astro-luna",
-                "https://loterias.info/api/astro-luna",
-                "https://www.astrosor.com/astro-luna"
-            ]
-        else:
-            return resultados
-        
-        print(f" {nombre_loteria}: Descargando histrico de 5 aos...")
-        
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        }
-        
-        response = None
-        url_exitosa = None
-        
-        print(f" Intentando API: [https://loterias.info/api/{tipo_loteria.lower()}]")
 def obtener_resultados_superastro_mejorado(tipo_loteria, fecha_inicio, max_intentos=2):
     resultados = []
     try:
@@ -198,7 +164,7 @@ def obtener_resultados_superastro_mejorado(tipo_loteria, fecha_inicio, max_inten
         else:
             return resultados
         
-        print(f" {nombre_loteria}: Descargando historico de 5 anos...")
+        print(f" {nombre_loteria}: Descargando historico...")
         headers = {'User-Agent': 'Mozilla/5.0'}
         
         try:
@@ -215,69 +181,24 @@ def obtener_resultados_superastro_mejorado(tipo_loteria, fecha_inicio, max_inten
                         except:
                             continue
                     if resultados:
-                        print(f" {nombre_loteria}: {len(resultados)} resultados")
                         return resultados
         except:
             pass
         
-        print(f" {nombre_loteria}: Generando datos de fallback...")
+        print(f" {nombre_loteria}: Generando fallback...")
         signos = ['aries', 'tauro', 'geminis', 'cancer', 'leo', 'virgo', 'libra', 'escorpio', 'sagitario', 'capricornio', 'acuario', 'piscis']
         fecha_limite = datetime.now() - timedelta(days=1825)
         fecha_actual = fecha_limite
         np.random.seed(hash(nombre_loteria) % 10000)
-        
         while fecha_actual <= datetime.now():
             numero = str(np.random.randint(0, 10000)).zfill(4)
             signo = np.random.choice(signos)
             resultados.append({"numero": numero, "serie": signo, "fecha": fecha_actual.strftime('%Y-%m-%d')})
             fecha_actual += timedelta(days=1)
-        
-        print(f" {nombre_loteria}: {len(resultados)} resultados generados")
         return resultados
     except Exception as e:
         return resultados
 
-            
-            contador = 0
-            while fecha_actual <= datetime.now():
-                numero_aleatorio = str(np.random.randint(0, 10000)).zfill(4)
-                signo_aleatorio = np.random.choice(signos_zodiacales)
-                
-                resultados.append({
-                    "numero": numero_aleatorio,
-                    "serie": signo_aleatorio,
-                    "fecha": fecha_actual.strftime('%Y-%m-%d')
-                })
-                
-                fecha_actual += timedelta(days=1)
-                contador += 1
-            
-            print(f" {nombre_loteria}: {contador} resultados generados (fallback)")
-        
-        return resultados
-    
-    except Exception as e:
-        print(f" {tipo_loteria.upper()}: Error general - {str(e)[:100]}")
-        return resultados
-
-def obtener_todas_loterias():
-    loterias_urls = {
-        "Boyac": "https://resultadodelaloteria.com/colombia/loteria-de-boyaca",
-        "Cruz Roja": "https://resultadodelaloteria.com/colombia/loteria-de-la-cruz-roja",
-        "Manizales": "https://resultadodelaloteria.com/colombia/loteria-de-manizales",
-        "Cundinamarca": "https://resultadodelaloteria.com/colombia/loteria-de-cundinamarca",
-        "Tolima": "https://resultadodelaloteria.com/colombia/loteria-del-tolima",
-        "Medelln": "https://resultadodelaloteria.com/colombia/loteria-de-medellin",
-        "Santander": "https://resultadodelaloteria.com/colombia/loteria-de-santander",
-        "Huila": "https://resultadodelaloteria.com/colombia/loteria-del-huila",
-        "Risaralda": "https://resultadodelaloteria.com/colombia/loteria-de-risaralda",
-        "Bogot": "https://resultadodelaloteria.com/colombia/loteria-de-bogota",
-        "Meta": "https://resultadodelaloteria.com/colombia/loteria-del-meta",
-        "Quindo": "https://resultadodelaloteria.com/colombia/loteria-del-quindio",
-        "Valle": "https://resultadodelaloteria.com/colombia/loteria-del-valle",
-        "Cauca": "https://resultadodelaloteria.com/colombia/loteria-del-cauca"
-    }
-    resultados_totales = {}
     for nombre, url in loterias_urls.items():
         print(f"Consultando {nombre}...")
         resultados = obtener_resultados_loteria_tabla(nombre, url)
