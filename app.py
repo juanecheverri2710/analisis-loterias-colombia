@@ -1,4 +1,4 @@
-﻿import json
+﻿﻿import json
 import threading
 import shutil
 import os
@@ -187,12 +187,9 @@ def obtener_resultados_superastro_mejorado(tipo_loteria, fecha_inicio, max_inten
         
         print(f" Intentando API: [https://loterias.info/api/{tipo_loteria.lower()}]")
 try:
-    # Solo usar la API de loterias.info
     api_url_simple = f"https://loterias.info/api/{tipo_loteria.lower()}"
     response = requests.get(api_url_simple, headers=headers, timeout=10, verify=False)
     if response.status_code == 200:
-        # ... resto del código
-        
         print(f"    Intentando URLs alternativas con scraping...")
         for url in urls_alternativas:
             print(f"   Intentando: {url}")
@@ -201,7 +198,7 @@ try:
                     response = requests.get(url, headers=headers, timeout=15, verify=False)
                     if response.status_code == 200:
                         url_exitosa = url
-                        print(f"    Conexin exitosa")
+                        print(f"    Conexion exitosa")
                         
                         soup = BeautifulSoup(response.text, 'html.parser')
                         tablas = soup.find_all('table')
@@ -253,6 +250,9 @@ try:
             
             if resultados:
                 break
+except Exception as e:
+    print(f" Error: {str(e)}")
+    return resultados
         
         if not resultados:
             print(f" {nombre_loteria}: No se encontraron datos en lnea, generando datos de fallback...")
