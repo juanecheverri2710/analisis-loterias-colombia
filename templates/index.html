@@ -1,21 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis de Loterías Colombia</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎰 Análisis de Loterías Colombia</h1>
+            <p>Predicciones inteligentes basadas en datos históricos</p>
+        </header>
+
+        <main>
+            <section class="control-section">
+                <button id="btnAnalizar" class="btn btn-primary">📊 Iniciar Análisis</button>
+                <div id="loading" class="loading hidden">
+                    <div class="spinner"></div>
+                    <p>Procesando...</p>
+                </div>
+            </section>
+
+            <section class="predicciones-section">
+                <h2>🎯 Predicciones de HOY</h2>
+                <div id="predicciones" class="predicciones-grid"></div>
+            </section>
+
+            <section class="sorteos-section">
+                <h2>📅 Últimos Resultados</h2>
+                <div id="sorteos" class="sorteos-grid"></div>
+            </section>
+
+            <section class="resultados-section">
+                <h2>📈 Análisis Completo</h2>
+                <div id="resultados" class="resultados-content">
+                    <pre id="resultadosText">Haz clic en "Iniciar Análisis"</pre>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 Análisis de Loterías Colombia</p>
+        </footer>
+    </div>
+
     <script>
-        console.log('Página cargada');
         cargarDatos();
 
         document.getElementById('btnAnalizar').onclick = async function() {
             this.disabled = true;
             document.getElementById('loading').classList.remove('hidden');
-            console.log('Iniciando análisis...');
             
             await fetch('/start-analysis', {method: 'POST'});
-            console.log('Esperando 50 segundos...');
-            await new Promise(r => setTimeout(r, 50000));
-            console.log('Obteniendo resultados...');
+            await new Promise(r => setTimeout(r, 55000));
             
             const res = await fetch('/get-results');
             const data = await res.json();
-            console.log('Resultados:', data);
-            document.getElementById('resultadosText').innerText = data.result || 'Análisis completado';
+            document.getElementById('resultadosText').innerText = data.result || 'Completado';
             document.getElementById('loading').classList.add('hidden');
             
             cargarDatos();
@@ -23,28 +65,32 @@
         };
 
         async function cargarDatos() {
-            console.log('Cargando datos...');
-            
-            const resPred = await fetch('/get-predicciones');
-            const pred = await resPred.json();
-            console.log('Predicciones recibidas:', pred);
-            let htmlPred = '';
-            for (let [loteria, valor] of Object.entries(pred)) {
-                let numero = valor ? valor.split(' ')[0] : 'N/A';
-                let signo = valor ? valor.split(' ')[1] : '';
-                htmlPred += `<div class="card prediccion"><h3>${loteria}</h3><div class="numero">${numero}</div><p class="signo">${signo}</p></div>`;
-            }
-            console.log('HTML predicciones:', htmlPred);
-            document.getElementById('predicciones').innerHTML = htmlPred || '<p class="placeholder">Sin predicciones</p>';
+            try {
+                const resPred = await fetch('/get-predicciones');
+                const pred = await resPred.json();
+                let htmlPred = '';
+                for (let [loteria, valor] of Object.entries(pred)) {
+                    if (valor) {
+                        let numero = valor.split(' ')[0] || 'N/A';
+                        let signo = valor.split(' ')[1] || '';
+                        htmlPred += `<div class="card prediccion"><h3>${loteria}</h3><div class="numero">${numero}</div><p class="signo">${signo}</p></div>`;
+                    }
+                }
+                document.getElementById('predicciones').innerHTML = htmlPred || '<p class="placeholder">Sin predicciones</p>';
 
-            const resSorteos = await fetch('/get-sorteos');
-            const sorteos = await resSorteos.json();
-            console.log('Sorteos recibidos:', sorteos);
-            let htmlSorteos = '';
-            for (let [loteria, info] of Object.entries(sorteos)) {
-                htmlSorteos += `<div class="card sorteo"><h3>${loteria}</h3><div class="numero">${info.numero}</div><p class="detalle">Signo: ${info.signo}</p><p class="fecha">${info.fecha}</p></div>`;
+                const resSorteos = await fetch('/get-sorteos');
+                const sorteos = await resSorteos.json();
+                let htmlSorteos = '';
+                for (let [loteria, info] of Object.entries(sorteos)) {
+                    if (info && info.numero) {
+                        htmlSorteos += `<div class="card sorteo"><h3>${loteria}</h3><div class="numero">${info.numero}</div><p class="detalle">Signo: ${info.signo || ''}</p><p class="fecha">${info.fecha || ''}</p></div>`;
+                    }
+                }
+                document.getElementById('sorteos').innerHTML = htmlSorteos || '<p class="placeholder">Sin sorteos</p>';
+            } catch(e) {
+                console.error('Error:', e);
             }
-            console.log('HTML sorteos:', htmlSorteos);
-            document.getElementById('sorteos').innerHTML = htmlSorteos || '<p class="placeholder">Sin sorteos</p>';
         }
     </script>
+</body>
+</html>
