@@ -108,7 +108,7 @@ def obtener_resultados_loteria_tabla(nombre, url):
     try:
         response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10, verify=False)
         if response.status_code != 200:
-            print(f {nombre}: Error HTTP {response.status_code}")
+            print(f"[!] {nombre}: Error HTTP {response.status_code}")
             return resultados
         soup = BeautifulSoup(response.text, "html.parser")
         tablas = soup.find_all("table")
