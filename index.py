@@ -1248,6 +1248,6 @@ if __name__ == "__main__":
     print("\n" + "="*70 + "\n")
 
    app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)import os
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
+app = app  # Just export the app object
+
     app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
