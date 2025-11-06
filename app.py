@@ -1246,13 +1246,9 @@ if __name__ == "__main__":
     print("\n🌐 PARA NGROK (NUEVA TERMINAL):")
     print("   ngrok http 5000")
     print("\n" + "="*70 + "\n")
-
-  if __name__ == '__main__':
+if __name__ == '__main__':
     import os
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
-
-
-
 
 
