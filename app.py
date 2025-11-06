@@ -1,4 +1,4 @@
-﻿﻿import json
+﻿import json
 import threading
 import shutil
 import os
@@ -186,86 +186,57 @@ def obtener_resultados_superastro_mejorado(tipo_loteria, fecha_inicio, max_inten
         url_exitosa = None
         
         print(f" Intentando API: [https://loterias.info/api/{tipo_loteria.lower()}]")
-try:
-    api_url_simple = f"https://loterias.info/api/{tipo_loteria.lower()}"
-    response = requests.get(api_url_simple, headers=headers, timeout=10, verify=False)
-    if response.status_code == 200:
-        print(f"    Intentando URLs alternativas con scraping...")
-        for url in urls_alternativas:
-            print(f"   Intentando: {url}")
-            for intento in range(max_intentos):
-                try:
-                    response = requests.get(url, headers=headers, timeout=15, verify=False)
-                    if response.status_code == 200:
-                        url_exitosa = url
-                        print(f"    Conexion exitosa")
-                        
-                        soup = BeautifulSoup(response.text, 'html.parser')
-                        tablas = soup.find_all('table')
-                        
-                        if tablas:
-                            fecha_limite = datetime.now() - timedelta(days=1825)
-                            contador = 0
-                            
-                            for tabla in tablas:
-                                filas = tabla.find_all('tr')
-                                for fila in filas[1:]:
-                                    try:
-                                        celdas = fila.find_all('td')
-                                        if len(celdas) >= 3:
-                                            fecha_str = celdas[0].get_text(strip=True)
-                                            numero = celdas[1].get_text(strip=True).replace('.', '').replace(' ', '').strip()
-                                            signo = celdas[2].get_text(strip=True).lower() if len(celdas) > 2 else "sin signo"
-                                            
-                                            fecha_obj = None
-                                            for fmt in ('%d/%m/%Y', '%Y-%m-%d', '%d-%m-%Y'):
-                                                try:
-                                                    fecha_obj = datetime.strptime(fecha_str, fmt)
-                                                    break
-                                                except ValueError:
-                                                    continue
-                                            
-                                            if fecha_obj and fecha_obj >= fecha_limite and numero.isdigit() and 3 <= len(numero) <= 4:
-                                                resultados.append({
-                                                    "numero": numero.zfill(4),
-                                                    "serie": signo,
-                                                    "fecha": fecha_obj.strftime('%Y-%m-%d')
-                                                })
-                                                contador += 1
-                                    except:
-                                        continue
-                            
-                            if contador > 0:
-                                print(f" {nombre_loteria}: {contador} resultados desde {url}")
-                                return resultados
-                    else:
-                        print(f"    Error {response.status_code}")
-                        time.sleep(1)
-                except requests.exceptions.Timeout:
-                    print(f"    Timeout (intento {intento+1}/{max_intentos})")
-                    time.sleep(2)
-                except Exception as e:
-                    print(f"   Error: {str(e)[:50]}")
-                    time.sleep(1)
-            
-            if resultados:
-                break
-except Exception as e:
-    print(f" Error: {str(e)}")
-    return resultados
+def obtener_resultados_superastro_mejorado(tipo_loteria, fecha_inicio, max_intentos=2):
+    resultados = []
+    try:
+        if tipo_loteria.lower() == 'sol':
+            nombre_loteria = 'Astro Sol'
+            api_url = "https://loterias.info/api/astro-sol"
+        elif tipo_loteria.lower() == 'luna':
+            nombre_loteria = 'Astro Luna'
+            api_url = "https://loterias.info/api/astro-luna"
+        else:
+            return resultados
         
-        if not resultados:
-            print(f" {nombre_loteria}: No se encontraron datos en lnea, generando datos de fallback...")
-            
-            signos_zodiacales = [
-                'aries', 'tauro', 'gminis', 'cncer', 'leo', 'virgo',
-                'libra', 'escorpio', 'sagitario', 'capricornio', 'acuario', 'piscis'
-            ]
-            
-            fecha_limite = datetime.now() - timedelta(days=1825)
-            fecha_actual = fecha_limite
-            
-            np.random.seed(hash(nombre_loteria) % 10000)
+        print(f" {nombre_loteria}: Descargando historico de 5 anos...")
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        
+        try:
+            response = requests.get(api_url, headers=headers, timeout=10, verify=False)
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, dict) and 'resultados' in data:
+                    for item in data['resultados']:
+                        try:
+                            numero = str(item.get('numero', '0')).zfill(4)
+                            signo = item.get('signo', 'sin signo').lower()
+                            fecha = item.get('fecha', '')
+                            resultados.append({"numero": numero, "serie": signo, "fecha": fecha})
+                        except:
+                            continue
+                    if resultados:
+                        print(f" {nombre_loteria}: {len(resultados)} resultados")
+                        return resultados
+        except:
+            pass
+        
+        print(f" {nombre_loteria}: Generando datos de fallback...")
+        signos = ['aries', 'tauro', 'geminis', 'cancer', 'leo', 'virgo', 'libra', 'escorpio', 'sagitario', 'capricornio', 'acuario', 'piscis']
+        fecha_limite = datetime.now() - timedelta(days=1825)
+        fecha_actual = fecha_limite
+        np.random.seed(hash(nombre_loteria) % 10000)
+        
+        while fecha_actual <= datetime.now():
+            numero = str(np.random.randint(0, 10000)).zfill(4)
+            signo = np.random.choice(signos)
+            resultados.append({"numero": numero, "serie": signo, "fecha": fecha_actual.strftime('%Y-%m-%d')})
+            fecha_actual += timedelta(days=1)
+        
+        print(f" {nombre_loteria}: {len(resultados)} resultados generados")
+        return resultados
+    except Exception as e:
+        return resultados
+
             
             contador = 0
             while fecha_actual <= datetime.now():
