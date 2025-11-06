@@ -1247,7 +1247,6 @@ if __name__ == "__main__":
     print("   ngrok http 5000")
     print("\n" + "="*70 + "\n")
 
-   app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)import os
-app = app  # Just export the app object
+# Vercel serverless export - no app.run() here
+# Just export the app object directly
 
-    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
