@@ -24,16 +24,12 @@
 
             <section class="predicciones-section">
                 <h2>🎯 Predicciones de HOY</h2>
-                <div id="predicciones" class="predicciones-grid">
-                    <p class="placeholder">Cargando predicciones...</p>
-                </div>
+                <div id="predicciones" class="predicciones-grid"></div>
             </section>
 
             <section class="sorteos-section">
                 <h2>📅 Últimos Resultados</h2>
-                <div id="sorteos" class="sorteos-grid">
-                    <p class="placeholder">Cargando sorteos...</p>
-                </div>
+                <div id="sorteos" class="sorteos-grid"></div>
             </section>
 
             <section class="resultados-section">
@@ -50,46 +46,47 @@
     </div>
 
     <script>
-        document.getElementById('btnAnalizar').addEventListener('click', async function() {
+        // Cargar datos al iniciar
+        cargarDatos();
+
+        // Botón de análisis
+        document.getElementById('btnAnalizar').onclick = async function() {
             this.disabled = true;
             document.getElementById('loading').classList.remove('hidden');
             
             await fetch('/start-analysis', {method: 'POST'});
+            await new Promise(r => setTimeout(r, 50000));
             
-            setTimeout(async () => {
-                const res = await fetch('/get-results');
-                const data = await res.json();
-                document.getElementById('resultadosText').textContent = data.result || 'Completado';
-                document.getElementById('loading').classList.add('hidden');
-                
-                await cargarPredicciones();
-                await cargarSorteos();
-                this.disabled = false;
-            }, 2000);
-        });
-
-        async function cargarPredicciones() {
-            const res = await fetch('/get-predicciones');
+            const res = await fetch('/get-results');
             const data = await res.json();
-            let html = '';
-            for (let [loteria, pred] of Object.entries(data)) {
-                html += `<div class="card prediccion"><h3>${loteria}</h3><div class="numero">${pred.split(' ')[0]}</div><p class="signo">${pred.split(' ')[1] || ''}</p></div>`;
-            }
-            document.getElementById('predicciones').innerHTML = html || '<p class="placeholder">Sin datos</p>';
-        }
+            document.getElementById('resultadosText').innerText = data.result || 'Análisis completado';
+            document.getElementById('loading').classList.add('hidden');
+            
+            cargarDatos();
+            this.disabled = false;
+        };
 
-        async function cargarSorteos() {
-            const res = await fetch('/get-sorteos');
-            const data = await res.json();
-            let html = '';
-            for (let [loteria, info] of Object.entries(data)) {
-                html += `<div class="card sorteo"><h3>${loteria}</h3><div class="numero">${info.numero}</div><p class="detalle">Signo: ${info.signo}</p><p class="fecha">${info.fecha}</p></div>`;
+        async function cargarDatos() {
+            // Predicciones
+            const resPred = await fetch('/get-predicciones');
+            const pred = await resPred.json();
+            let htmlPred = '';
+            for (let [loteria, valor] of Object.entries(pred)) {
+                let numero = valor ? valor.split(' ')[0] : 'N/A';
+                let signo = valor ? valor.split(' ')[1] : '';
+                htmlPred += `<div class="card prediccion"><h3>${loteria}</h3><div class="numero">${numero}</div><p class="signo">${signo}</p></div>`;
             }
-            document.getElementById('sorteos').innerHTML = html || '<p class="placeholder">Sin datos</p>';
-        }
+            document.getElementById('predicciones').innerHTML = htmlPred || '<p class="placeholder">Sin predicciones</p>';
 
-        cargarPredicciones();
-        cargarSorteos();
+            // Sorteos
+            const resSorteos = await fetch('/get-sorteos');
+            const sorteos = await resSorteos.json();
+            let htmlSorteos = '';
+            for (let [loteria, info] of Object.entries(sorteos)) {
+                htmlSorteos += `<div class="card sorteo"><h3>${loteria}</h3><div class="numero">${info.numero}</div><p class="detalle">Signo: ${info.signo}</p><p class="fecha">${info.fecha}</p></div>`;
+            }
+            document.getElementById('sorteos').innerHTML = htmlSorteos || '<p class="placeholder">Sin sorteos</p>';
+        }
     </script>
 </body>
 </html>
