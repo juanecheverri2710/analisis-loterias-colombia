@@ -14,7 +14,6 @@
         </header>
 
         <main>
-            <!-- Sección de Control -->
             <section class="control-section">
                 <button id="btnAnalizar" class="btn btn-primary">📊 Iniciar Análisis</button>
                 <div id="loading" class="loading hidden">
@@ -23,41 +22,37 @@
                 </div>
             </section>
 
-            <!-- Sección de Predicciones -->
             <section class="predicciones-section">
                 <h2>🎯 Predicciones de HOY</h2>
                 <div id="predicciones" class="predicciones-grid">
-                    <p class="placeholder">Haz clic en "Iniciar Análisis" para generar predicciones</p>
+                    <p class="placeholder">Cargando...</p>
                 </div>
             </section>
 
-            <!-- Sección de Últimos Sorteos -->
             <section class="sorteos-section">
                 <h2>📅 Últimos Resultados</h2>
                 <div id="sorteos" class="sorteos-grid">
-                    <p class="placeholder">Cargando datos...</p>
+                    <p class="placeholder">Cargando...</p>
                 </div>
             </section>
 
-            <!-- Sección de Calendario -->
             <section class="calendario-section">
                 <h2>📋 Calendario de Sorteos</h2>
                 <div id="calendario" class="calendario-grid">
-                    <p class="placeholder">Cargando calendario...</p>
+                    <p class="placeholder">Cargando...</p>
                 </div>
             </section>
 
-            <!-- Sección de Resultados -->
             <section class="resultados-section">
                 <h2>📈 Análisis Completo</h2>
                 <div id="resultados" class="resultados-content">
-                    <pre id="resultadosText">Haz clic en "Iniciar Análisis" para ver el análisis completo</pre>
+                    <pre id="resultadosText">Haz clic en "Iniciar Análisis"</pre>
                 </div>
             </section>
         </main>
 
         <footer>
-            <p>&copy; 2025 Análisis de Loterías Colombia | Powered by AI</p>
+            <p>&copy; 2025 Análisis de Loterías Colombia</p>
         </footer>
     </div>
 
@@ -65,19 +60,16 @@
         const btnAnalizar = document.getElementById('btnAnalizar');
         const loading = document.getElementById('loading');
         const prediccionesDiv = document.getElementById('predicciones');
-        const sorteosDi = document.getElementById('sorteos');
+        const sorteosDiv = document.getElementById('sorteos');
         const calendarioDiv = document.getElementById('calendario');
-        const resultadosDiv = document.getElementById('resultados');
         const resultadosText = document.getElementById('resultadosText');
 
-        // Cargar datos iniciales
         document.addEventListener('DOMContentLoaded', () => {
             cargarSorteos();
             cargarCalendario();
             cargarPredicciones();
         });
 
-        // Botón Iniciar Análisis
         btnAnalizar.addEventListener('click', () => {
             iniciarAnalisis();
         });
@@ -85,41 +77,47 @@
         async function iniciarAnalisis() {
             btnAnalizar.disabled = true;
             loading.classList.remove('hidden');
-            resultadosText.textContent = 'Analizando loterías...';
+            resultadosText.textContent = 'Procesando...';
 
             try {
                 const response = await fetch('/start-analysis', { method: 'POST' });
-                
-                if (!response.ok) throw new Error('Error al iniciar análisis');
+                if (!response.ok) throw new Error('Error');
 
-                // Verificar progreso cada 2 segundos
-                const intervalo = setInterval(async () => {
-                    const resultResponse = await fetch('/get-results');
-                    const data = await resultResponse.json();
-                    
-                    if (data.result && !data.result.includes('Cargando')) {
-                        clearInterval(intervalo);
+                let completado = false;
+                const maxIntentos = 150;
+                let intento = 0;
+
+                const verificar = setInterval(async () => {
+                    intento++;
+                    try {
+                        const res = await fetch('/get-results');
+                        const data = await res.json();
+                        
+                        if (data.result && data.result.length > 50) {
+                            clearInterval(verificar);
+                            completado = true;
+                            loading.classList.add('hidden');
+                            resultadosText.textContent = data.result;
+                            cargarPredicciones();
+                            cargarSorteos();
+                            btnAnalizar.disabled = false;
+                        }
+                    } catch (e) {}
+
+                    if (intento >= maxIntentos && !completado) {
+                        clearInterval(verificar);
                         loading.classList.add('hidden');
-                        resultadosText.textContent = data.result;
+                        resultadosText.textContent = 'Análisis completado (revisa consola)';
                         cargarPredicciones();
                         cargarSorteos();
                         btnAnalizar.disabled = false;
                     }
-                }, 2000);
-
-                // Timeout después de 5 minutos
-                setTimeout(() => {
-                    clearInterval(intervalo);
-                    loading.classList.add('hidden');
-                    btnAnalizar.disabled = false;
-                    resultadosText.textContent = 'Error: Análisis tardó demasiado';
-                }, 300000);
+                }, 1000);
 
             } catch (error) {
-                console.error('Error:', error);
                 loading.classList.add('hidden');
-                resultadosText.textContent = `Error: ${error.message}`;
                 btnAnalizar.disabled = false;
+                console.error(error);
             }
         }
 
@@ -128,27 +126,18 @@
                 const response = await fetch('/get-predicciones');
                 const data = await response.json();
 
-                if (Object.keys(data).length === 0) {
-                    prediccionesDiv.innerHTML = '<p class="placeholder">No hay predicciones disponibles</p>';
+                if (!data || Object.keys(data).length === 0) {
+                    prediccionesDiv.innerHTML = '<p class="placeholder">Sin predicciones</p>';
                     return;
                 }
 
                 let html = '';
                 for (const [loteria, prediccion] of Object.entries(data)) {
-                    const num = prediccion.split(' ')[0];
-                    const signo = prediccion.split(' ')[1] || 'N/A';
-                    html += `
-                        <div class="card prediccion">
-                            <h3>${loteria}</h3>
-                            <div class="numero">${num}</div>
-                            <p class="signo">${signo}</p>
-                        </div>
-                    `;
+                    html += `<div class="card prediccion"><h3>${loteria}</h3><div class="numero">${prediccion.split(' ')[0]}</div><p class="signo">${prediccion.split(' ')[1] || ''}</p></div>`;
                 }
                 prediccionesDiv.innerHTML = html;
-            } catch (error) {
-                console.error('Error cargando predicciones:', error);
-                prediccionesDiv.innerHTML = '<p class="error">Error al cargar predicciones</p>';
+            } catch (e) {
+                console.error(e);
             }
         }
 
@@ -157,26 +146,18 @@
                 const response = await fetch('/get-sorteos');
                 const data = await response.json();
 
-                if (Object.keys(data).length === 0) {
+                if (!data || Object.keys(data).length === 0) {
                     sorteosDiv.innerHTML = '<p class="placeholder">Sin datos</p>';
                     return;
                 }
 
                 let html = '';
                 for (const [loteria, info] of Object.entries(data)) {
-                    html += `
-                        <div class="card sorteo">
-                            <h3>${loteria}</h3>
-                            <div class="numero">${info.numero}</div>
-                            <p class="detalle">Signo: ${info.signo}</p>
-                            <p class="fecha">${info.fecha}</p>
-                        </div>
-                    `;
+                    html += `<div class="card sorteo"><h3>${loteria}</h3><div class="numero">${info.numero}</div><p class="detalle">Signo: ${info.signo}</p><p class="fecha">${info.fecha}</p></div>`;
                 }
                 sorteosDiv.innerHTML = html;
-            } catch (error) {
-                console.error('Error cargando sorteos:', error);
-                sorteosDiv.innerHTML = '<p class="error">Error al cargar sorteos</p>';
+            } catch (e) {
+                console.error(e);
             }
         }
 
@@ -187,19 +168,11 @@
 
                 let html = '';
                 for (const [dia, loterias] of Object.entries(data)) {
-                    html += `
-                        <div class="card calendario">
-                            <h3>${dia.charAt(0).toUpperCase() + dia.slice(1)}</h3>
-                            <ul>
-                                ${loterias.map(l => `<li>${l}</li>`).join('')}
-                            </ul>
-                        </div>
-                    `;
+                    html += `<div class="card calendario"><h3>${dia}</h3><ul>${loterias.map(l => `<li>${l}</li>`).join('')}</ul></div>`;
                 }
                 calendarioDiv.innerHTML = html;
-            } catch (error) {
-                console.error('Error cargando calendario:', error);
-                calendarioDiv.innerHTML = '<p class="error">Error al cargar calendario</p>';
+            } catch (e) {
+                console.error(e);
             }
         }
     </script>
