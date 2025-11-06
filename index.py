@@ -1,22 +1,16 @@
-from flask import Flask, render_template
+from flask import Flask
 
 app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return '''
-    <html>
-    <head><title>Análisis Loterías Colombia</title></head>
+    return '''<html>
+    <head><title>Análisis Loterías</title></head>
     <body>
-        <h1>¡Hola! App funcionando ✅</h1>
-        <p>La API está lista.</p>
+        <h1>✅ App funcionando</h1>
+        <p>API lista para usar.</p>
     </body>
-    </html>
-    '''
-
-@app.errorhandler(404)
-def not_found(error):
-    return "<h1>404 - No encontrado</h1>", 404
+    </html>'''
 
 if __name__ == '__main__':
     app.run(debug=False)
