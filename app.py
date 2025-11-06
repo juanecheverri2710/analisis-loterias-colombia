@@ -142,97 +142,109 @@ def obtener_resultados_loteria_tabla(nombre, url):
 def obtener_resultados_superastro_mejorado(tipo_loteria, fecha_inicio, max_intentos=5):
     resultados = []
     try:
-        url = "https://superastro.com.co/historico.php"
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Referer': 'https://superastro.com.co/',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'es-ES,es;q=0.9',
-            'Cache-Control': 'no-cache'
-        }
-        
         if tipo_loteria.lower() == 'sol':
-            payload = {'fecha_sol': fecha_inicio}
+            url = "https://www.astrosor.com/astro-sol"
             nombre_loteria = 'Astro Sol'
         elif tipo_loteria.lower() == 'luna':
-            payload = {'fecha_luna': fecha_inicio}
+            url = "https://www.astrosor.com/astro-luna"
             nombre_loteria = 'Astro Luna'
         else:
             return resultados
         
         print(f"🔄 {nombre_loteria}: Descargando histórico de 5 años...")
         
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'es-ES,es;q=0.9',
+            'Referer': 'https://www.astrosor.com/',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1'
+        }
+        
         response = None
         for intento in range(max_intentos):
             try:
-                response = requests.post(url, data=payload, headers=headers, timeout=30, verify=False)
+                response = requests.get(url, headers=headers, timeout=30, verify=False)
                 if response.status_code == 200:
-                    print(f"   ✅ Conexión exitosa (intento {intento+1})")
+                    print(f"   ✅ Conexión exitosa a {url}")
                     break
                 print(f"   Reintentando... (Error {response.status_code})")
-                time.sleep(3)
-            except requests.exceptions.Timeout:
-                print(f"   ⏱️ Timeout (intento {intento+1}/{max_intentos})")
-                time.sleep(3)
+                time.sleep(2)
             except Exception as e:
-                print(f"   Error de conexión: {str(e)}")
-                time.sleep(3)
+                print(f"   Intento {intento+1}/{max_intentos} - Error: {str(e)}")
+                time.sleep(2)
         
         if not response or response.status_code != 200:
-            print(f"❌ No se pudo conectar a SuperAstro para {nombre_loteria}")
-            return resultados
+            print(f"⚠️ Intentando URL alternativa para {nombre_loteria}...")
+            try:
+                if tipo_loteria.lower() == 'sol':
+                    alt_url = "https://superastro.com.co/resultados-astro-sol"
+                else:
+                    alt_url = "https://superastro.com.co/resultados-astro-luna"
+                
+                response = requests.get(alt_url, headers=headers, timeout=30, verify=False)
+                if response.status_code != 200:
+                    print(f"❌ No se pudo conectar a {nombre_loteria}")
+                    return resultados
+                print(f"   ✅ Conectado a URL alternativa")
+            except:
+                print(f"❌ No se pudo conectar a SuperAstro para {nombre_loteria}")
+                return resultados
         
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        tabla = soup.find('table', {'class': 'table'})
-        if not tabla:
-            tabla = soup.find('table')
-        
-        if not tabla:
-            print(f"⚠️ No se encontró tabla HTML para {nombre_loteria}")
+        tablas = soup.find_all('table')
+        if not tablas:
+            print(f"⚠️ No se encontraron tablas HTML para {nombre_loteria}")
             return resultados
-        
-        tbody = tabla.find('tbody')
-        if not tbody:
-            filas = tabla.find_all('tr')[1:]
-        else:
-            filas = tbody.find_all('tr')
         
         fecha_limite = datetime.now() - timedelta(days=1825)
         contador = 0
         
-        for fila in filas:
-            try:
-                celdas = fila.find_all('td')
-                if len(celdas) < 3:
-                    continue
-                
-                fecha_str = celdas[0].get_text(strip=True)
-                numero = celdas[1].get_text(strip=True)
-                signo = celdas[2].get_text(strip=True).lower() if len(celdas) > 2 else "sin signo"
-                
-                try:
-                    fecha_obj = datetime.strptime(fecha_str, '%d/%m/%Y')
-                    fecha_formateada = fecha_obj.strftime('%Y-%m-%d')
-                    
-                    if fecha_obj < fecha_limite:
-                        continue
-                except ValueError:
-                    continue
-                
-                numero_limpio = numero.replace(' ', '').replace('.', '').strip()
-                
-                if numero_limpio.isdigit() and 3 <= len(numero_limpio) <= 4:
-                    numero_formateado = numero_limpio.zfill(4)
-                    resultados.append({
-                        "numero": numero_formateado,
-                        "serie": signo,
-                        "fecha": fecha_formateada
-                    })
-                    contador += 1
-            except Exception as e:
+        for tabla in tablas:
+            filas = tabla.find_all('tr')
+            if len(filas) < 2:
                 continue
+            
+            for fila in filas[1:]:
+                try:
+                    celdas = fila.find_all('td')
+                    if len(celdas) < 3:
+                        continue
+                    
+                    fecha_str = celdas[0].get_text(strip=True)
+                    numero = celdas[1].get_text(strip=True)
+                    signo = celdas[2].get_text(strip=True).lower().strip() if len(celdas) > 2 else "sin signo"
+                    
+                    try:
+                        for fmt in ('%d/%m/%Y', '%Y-%m-%d', '%d-%m-%Y', '%d/%m/%y'):
+                            try:
+                                fecha_obj = datetime.strptime(fecha_str, fmt)
+                                fecha_formateada = fecha_obj.strftime('%Y-%m-%d')
+                                break
+                            except ValueError:
+                                continue
+                        else:
+                            continue
+                        
+                        if fecha_obj < fecha_limite:
+                            continue
+                    except:
+                        continue
+                    
+                    numero_limpio = numero.replace(' ', '').replace('.', '').replace(',', '').strip()
+                    
+                    if numero_limpio.isdigit() and 3 <= len(numero_limpio) <= 4:
+                        numero_formateado = numero_limpio.zfill(4)
+                        resultados.append({
+                            "numero": numero_formateado,
+                            "serie": signo,
+                            "fecha": fecha_formateada
+                        })
+                        contador += 1
+                except Exception as e:
+                    continue
         
         print(f"✅ {nombre_loteria}: {contador} resultados descargados (últimos 5 años)")
         return resultados
@@ -263,13 +275,16 @@ def obtener_todas_loterias():
         print(f"Consultando {nombre}...")
         resultados = obtener_resultados_loteria_tabla(nombre, url)
         resultados_totales[nombre] = resultados
+    
     fecha_inicio = (datetime.now() - timedelta(days=1825)).strftime('%Y-%m-%d')
     print("\nConsultando Astro Luna...")
     resultados_luna = obtener_resultados_superastro_mejorado('luna', fecha_inicio)
     resultados_totales["Astro Luna"] = resultados_luna
+    
     print("\nConsultando Astro Sol...")
     resultados_sol = obtener_resultados_superastro_mejorado('sol', fecha_inicio)
     resultados_totales["Astro Sol"] = resultados_sol
+    
     return resultados_totales
 
 def combinar_resultados_acumulativo(historico, nuevos):
@@ -310,10 +325,8 @@ def guardar_resultado_loteria(nuevo_resultado):
                 datos[loteria] = []
             
             numeros_existentes = {(r['numero'], r['fecha']) for r in datos[loteria]}
-            nuevos_a_agregar = [r for r in lista_resultados 
-                               if (r['numero'], r['fecha']) not in numeros_existentes]
-            
-            datos[loteria] = lista_resultados + datos[loteria]
+            datos[loteria] = lista_resultados + [r for r in datos[loteria] 
+                                                 if (r['numero'], r['fecha']) not in {(nr['numero'], nr['fecha']) for nr in lista_resultados}]
         
         with open(ruta_archivo, 'w', encoding='utf-8') as f:
             json.dump(datos, f, indent=2, ensure_ascii=False)
@@ -345,28 +358,66 @@ def generar_predicciones_diarias():
     try:
         with open(ruta_archivo, 'r', encoding='utf-8') as f:
             datos = json.load(f)
+        
         hoy_dia = datetime.now().weekday()
         predicciones_diarias = {}
         
-        for loteria, sorteos in datos.items():
-            if loteria in DIAS_LOTERIA and hoy_dia in DIAS_LOTERIA[loteria]:
-                if sorteos and len(sorteos) >= 10:
-                    numeros_freq = {}
-                    for sorteo in sorteos:
-                        num = str(sorteo.get("numero", "0")).strip().lstrip('0') or "0"
-                        numeros_freq[num] = numeros_freq.get(num, 0) + 1
-                    
-                    if numeros_freq:
-                        top_numeros = sorted(numeros_freq.items(), key=lambda x: x[1], reverse=True)
-                        
-                        numero_predicho = str(top_numeros[0][0]).zfill(4)
-                        predicciones_diarias[loteria] = numero_predicho
-                        print(f"🎯 {loteria}: Número predicho = {numero_predicho} (Apariciones: {top_numeros[0][1]})")
+        for loteria_key, dias_juega in DIAS_LOTERIA.items():
+            if hoy_dia not in dias_juega:
+                continue
+            
+            loteria_nombre = None
+            for key in datos.keys():
+                if key.lower() == loteria_key.lower():
+                    loteria_nombre = key
+                    break
+            
+            if not loteria_nombre or loteria_nombre not in datos:
+                continue
+            
+            sorteos = datos[loteria_nombre]
+            if not sorteos or len(sorteos) < 5:
+                continue
+            
+            numeros_freq = {}
+            signos_freq = {}
+            
+            for sorteo in sorteos:
+                numero = str(sorteo.get("numero", "0")).strip().lstrip('0') or "0"
+                numeros_freq[numero] = numeros_freq.get(numero, 0) + 1
+                
+                if "Astro" in loteria_nombre:
+                    signo = str(sorteo.get("serie", "")).strip().lower()
+                    if signo and signo != "no disponible":
+                        signos_freq[signo] = signos_freq.get(signo, 0) + 1
+            
+            if numeros_freq:
+                top_numeros = sorted(numeros_freq.items(), key=lambda x: x[1], reverse=True)
+                numero_predicho = str(top_numeros[0][0]).zfill(4)
+                
+                if "Astro" in loteria_nombre and signos_freq:
+                    top_signos = sorted(signos_freq.items(), key=lambda x: x[1], reverse=True)
+                    signo_predicho = top_signos[0][0]
+                    predicciones_diarias[loteria_nombre] = {
+                        "numero": numero_predicho,
+                        "signo": signo_predicho,
+                        "apariciones": top_numeros[0][1]
+                    }
+                    print(f"🎯 {loteria_nombre}: Número {numero_predicho} (Signo: {signo_predicho}) - {top_numeros[0][1]} apariciones")
+                else:
+                    predicciones_diarias[loteria_nombre] = {
+                        "numero": numero_predicho,
+                        "signo": "N/A",
+                        "apariciones": top_numeros[0][1]
+                    }
+                    print(f"🎯 {loteria_nombre}: Número {numero_predicho} - {top_numeros[0][1]} apariciones")
         
         print(f"\n✅ Predicciones generadas para HOY ({datetime.now().strftime('%A')})")
         print(f" Loterías que juegan hoy: {len(predicciones_diarias)}")
     except Exception as e:
         print(f"⚠️ Error generando predicciones: {str(e)}")
+        import traceback
+        traceback.print_exc()
 
 def cargar_a_dataframe(nombre_archivo):
     try:
@@ -684,7 +735,13 @@ def get_sorteos():
 @app.route("/get-predicciones", methods=["GET"])
 def get_predicciones():
     generar_predicciones_diarias()
-    return jsonify(predicciones_diarias)
+    predicciones_formateadas = {}
+    for loteria, pred in predicciones_diarias.items():
+        if isinstance(pred, dict):
+            predicciones_formateadas[loteria] = f"{pred['numero']} {pred['signo']}" if pred['signo'] != 'N/A' else pred['numero']
+        else:
+            predicciones_formateadas[loteria] = pred
+    return jsonify(predicciones_formateadas)
 
 @app.route("/get-calendario", methods=["GET"])
 def get_calendario():
