@@ -40,30 +40,22 @@ predicciones_diarias = {}
 lock = threading.Lock()
 modelo_ia = None
 
-# ✅ CALENDARIO CORREGIDO - Días de juego por lotería 
-# (0=Lunes, 1=Martes, 2=Miércoles, 3=Jueves, 4=Viernes, 5=Sábado, 6=Domingo)
+# ✅ CALENDARIO CORREGIDO
 DIAS_LOTERIA = {
-    # Lunes
     "Cundinamarca": [0],
     "Tolima": [0],
-    # Martes
     "Cruz Roja": [1],
     "Huila": [1],
-    # Miércoles
     "Manizales": [2],
     "Valle": [2],
     "Meta": [2],
-    # Jueves
     "Bogotá": [3],
     "Quindío": [3],
-    # Viernes
     "Medellín": [4],
     "Risaralda": [4],
     "Santander": [4],
-    # Sábado
     "Boyacá": [5],
     "Cauca": [5],
-    # Todos los días
     "Astro Luna": [0, 1, 2, 3, 4, 5, 6],
     "Astro Sol": [0, 1, 2, 3, 4, 5, 6]
 }
@@ -270,7 +262,6 @@ def obtener_todas_loterias():
 
     return resultados_totales
 
-
 def combinar_resultados_acumulativo(historico, nuevos):
     dfs = []
 
@@ -330,24 +321,20 @@ def generar_predicciones_diarias():
         with open(ruta_archivo, 'r', encoding='utf-8') as f:
             datos = json.load(f)
 
-        hoy_dia = datetime.now().weekday() # 0=Lunes, 6=Domingo
+        hoy_dia = datetime.now().weekday()
 
         predicciones_diarias = {}
 
         for loteria, sorteos in datos.items():
-            # Verificar si la lotería juega hoy
             if loteria in DIAS_LOTERIA and hoy_dia in DIAS_LOTERIA[loteria]:
                 if sorteos:
-                    # Obtener TOP 5 números más frecuentes
                     numeros_freq = {}
                     for sorteo in sorteos:
                         num = sorteo.get("numero", "0")
                         numeros_freq[num] = numeros_freq.get(num, 0) + 1
 
-                    # Ordenar por frecuencia y tomar el más probable
                     top_numeros = sorted(numeros_freq.items(), key=lambda x: x[1], reverse=True)[:5]
 
-                    # Seleccionar el número con mayor frecuencia
                     if top_numeros:
                         numero_predicho = top_numeros[0][0].zfill(4)
                         predicciones_diarias[loteria] = numero_predicho
@@ -736,10 +723,10 @@ def ejecutar_scraping_y_analisis():
     except Exception as e:
         analisis_texto = f"Error: {str(e)}"
 
-# ✅ HEALTH CHECK PARA KOYEB
+# ✅ HEALTH CHECK - SIEMPRE DEBE RESPONDER RÁPIDO
 @app.route('/health')
 def health():
-    return jsonify({"status": "healthy"}), 200
+    return jsonify({"status": "ok"}), 200
 
 @app.route("/")
 def index():
@@ -765,7 +752,6 @@ def get_sorteos():
 
 @app.route("/get-predicciones", methods=["GET"])
 def get_predicciones():
-    """Devuelve predicciones de números ganadores para las loterías que juegan HOY"""
     return jsonify(predicciones_diarias)
 
 @app.route('/static/')
@@ -773,20 +759,15 @@ def static_files(filename):
     return send_from_directory(carpeta_static, filename)
 
 if __name__ == "__main__":
-    puerto = 5000
-    hostname = socket.gethostname()
-
-    try:
-        local_ip = socket.gethostbyname(hostname)
-    except:
-        local_ip = "127.0.0.1"
-
+    # ✅ USAR PUERTO DE VARIABLE DE ENTORNO (Koyeb)
+    puerto = int(os.environ.get('PORT', 5000))
+    
     print("\n" + "="*70)
-    print("🚀 SERVIDOR FLASK - PRODUCTION READY")
+    print("🚀 SERVIDOR FLASK - KOYEB READY")
     print("="*70)
-    print(f"\n✅ Ejecutando en puerto: {puerto}")
-    print(f"📍 Local: http://localhost:{puerto}")
-    print(f"📱 Red: http://{local_ip}:{puerto}")
+    print(f"\n✅ Puerto: {puerto}")
+    print(f"✅ Health check: /health")
+    print(f"✅ Modo: Production")
     print("\n" + "="*70 + "\n")
 
     app.run(host='0.0.0.0', port=puerto, debug=False, use_reloader=False)
