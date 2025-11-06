@@ -760,14 +760,18 @@ def static_files(filename):
 
 if __name__ == "__main__":
     # ✅ USAR PUERTO DE VARIABLE DE ENTORNO (Koyeb)
-    puerto = int(os.environ.get('PORT', 5000))
+    puerto = int(os.environ.get('PORT', 8000))
     
-    print("\n" + "="*70)
+    print("\\n" + "="*70)
     print("🚀 SERVIDOR FLASK - KOYEB READY")
     print("="*70)
-    print(f"\n✅ Puerto: {puerto}")
+    print(f"\\n✅ Puerto: {puerto}")
     print(f"✅ Health check: /health")
-    print(f"✅ Modo: Production")
-    print("\n" + "="*70 + "\n")
-
-    app.run(host='0.0.0.0', port=puerto, debug=False, use_reloader=False)
+    print(f"✅ Modo: Production (HTTP)")
+    print("\\n" + "="*70 + "\\n")
+    
+    app.run(
+        host="0.0.0.0",
+        port=puerto,
+        debug=False
+    )
