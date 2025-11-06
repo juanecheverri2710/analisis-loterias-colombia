@@ -23,7 +23,7 @@
                 </div>
             </section>
 
-            <!-- Calendario de Loterías -->
+            <!-- Calendario de Loterías en Tarjetas -->
             <section class="calendario-section">
                 <h2>📅 Calendario de Loterías</h2>
                 <div id="calendario" class="calendario-grid"></div>
@@ -41,6 +41,46 @@
                 <div id="sorteos" class="sorteos-grid"></div>
             </section>
 
+            <!-- Características -->
+            <section class="caracteristicas-section">
+                <h2>✨ Características Actuales</h2>
+                <div class="caracteristicas-grid">
+                    <div class="feature-card">
+                        <h3>🔧 Correcciones Implementadas</h3>
+                        <ul>
+                            <li>✅ Timeout optimizado a 45 segundos</li>
+                            <li>✅ Sincronización Flask ↔ Frontend</li>
+                            <li>✅ Manejo robusto de errores</li>
+                            <li>✅ Carga asincrónica de datos</li>
+                            <li>✅ Validación de respuestas JSON</li>
+                            <li>✅ Interfaz responsiva mejorada</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🎮 Características de la App</h3>
+                        <ul>
+                            <li>🎰 16 Loterías Soportadas</li>
+                            <li>📊 Modelo ML Ensemble (3 algoritmos)</li>
+                            <li>📈 Análisis de 5 años de datos</li>
+                            <li>🌍 1,800+ registros por lotería</li>
+                            <li>⚡ Predicciones en tiempo real</li>
+                            <li>🔐 Datos seguros en la nube</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🚀 Tecnología Stack</h3>
+                        <ul>
+                            <li>Backend: Flask + Python 3.11</li>
+                            <li>ML: XGBoost + LightGBM + RF</li>
+                            <li>Frontend: HTML5 + CSS3 + JS</li>
+                            <li>Hosting: Koyeb Cloud</li>
+                            <li>Database: JSON + Pickle</li>
+                            <li>Status: ✅ Producción 24/7</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
             <!-- Análisis Completo -->
             <section class="resultados-section">
                 <h2>📊 Análisis Técnico</h2>
@@ -49,7 +89,7 @@
         </main>
 
         <footer>
-            <p>&copy; 2025 Análisis de Loterías Colombia</p>
+            <p>&copy; 2025 Análisis de Loterías Colombia | v3.1</p>
             <p>Desarrollado con IA | Datos actualizados en tiempo real</p>
         </footer>
     </div>
@@ -71,8 +111,8 @@
             'Cruz Roja': ['Martes', 'Jueves', 'Sábado'],
             'Boyacá': ['Lunes', 'Miércoles', 'Viernes'],
             'Meta': ['Martes', 'Jueves', 'Sábado'],
-            'Astro Luna': ['Diario'],
-            'Astro Sol': ['Diario']
+            'Astro Luna': ['Diario 🌙'],
+            'Astro Sol': ['Diario ☀️']
         };
 
         // Cargar datos al iniciar
@@ -104,8 +144,11 @@
             for (let [loteria, dias] of Object.entries(CALENDARIO)) {
                 html += `
                     <div class="calendario-card">
+                        <div class="card-icon">🎰</div>
                         <h3>${loteria}</h3>
-                        <p class="dias">${dias.join(', ')}</p>
+                        <div class="dias-container">
+                            ${dias.map(dia => `<span class="dia-badge">${dia}</span>`).join('')}
+                        </div>
                     </div>
                 `;
             }
