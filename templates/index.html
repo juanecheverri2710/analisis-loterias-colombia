@@ -179,7 +179,7 @@
             }
         }
 
-        // Iniciar análisis (MEJORADO CON PROGRESO)
+        // 🆕 Iniciar análisis CON PROGRESO
         function iniciarAnalisis() {
             console.log("🔄 Iniciando análisis...");
 
@@ -206,7 +206,7 @@
                 });
         }
 
-        // Monitorear progreso EN TIEMPO REAL (FUNCIÓN NUEVA)
+        // 🆕 Monitorear progreso EN TIEMPO REAL
         function monitorearProgreso() {
             const intervaloProgreso = setInterval(() => {
                 fetch(API_BASE + '/get-progreso')
@@ -237,32 +237,6 @@
                     })
                     .catch(err => console.error("Error consultando progreso:", err));
             }, 500);
-        }
-
-        // Mostrar progreso
-        async function mostrarProgreso() {
-            const timeout = setTimeout(() => {
-                document.getElementById('resultado').textContent = 'Completado';
-                cargarResultados();
-            }, 60000);
-
-            const intervalo = setInterval(async () => {
-                try {
-                    const res = await fetch(API_BASE + '/get-results');
-                    const data = await res.json();
-
-                    if (data.result.includes('✅')) {
-                        clearTimeout(timeout);
-                        clearInterval(intervalo);
-                        document.getElementById('resultado').textContent = data.result;
-                        await cargarResultados();
-                    } else {
-                        document.getElementById('resultado').textContent = data.result;
-                    }
-                } catch (err) {
-                    console.error('Error:', err);
-                }
-            }, 1000);
         }
 
         // Cargar resultados
