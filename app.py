@@ -4,7 +4,7 @@ import shutil
 import os
 from datetime import datetime, timedelta
 import pandas as pd
-import numpy as np
+import numpy as 
 import requests
 from bs4 import BeautifulSoup
 from flask import Flask, render_template, request, jsonify, send_from_directory
@@ -154,91 +154,78 @@ def obtener_resultados_loteria_tabla(nombre, url):
         print(f"❌ {nombre}: Error")
         return resultados
 
-def obtener_resultados_superastro_mejorado(tipo_loteria, fecha_inicio, max_intentos=5):
-    """Obtiene resultados de Astro Sol y Astro Luna desde superastro.com.co"""
+def obtenerresultadossuperastromejoradotipoloteria(fechainicio, tipoloteria, maxintentos=5):
     resultados = []
     try:
         url = "https://superastro.com.co/historico.php"
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Referer': 'https://superastro.com.co/'
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36",
+    "Content-Type": "application/x-www-form-urlencoded",
+    "Referer": "https://superastro.com.co"
+}
         }
-
-        if tipo_loteria.lower() == 'sol':
-            payload = {'fecha_sol': fecha_inicio}
-            id_tabla_resultados = 'home'
-            nombre_loteria = 'Astro Sol'
-        elif tipo_loteria.lower() == 'luna':
-            payload = {'fecha_luna': fecha_inicio}
-            id_tabla_resultados = 'profile'
-            nombre_loteria = 'Astro Luna'
+        if tipoloteria.lower() == "sol":
+            payload = {
+                "fechasol": fechainicio,
+                "idtablaresultados": "home",
+                "nombreloteria": "Astro Sol"
+            }
+        elif tipoloteria.lower() == "luna":
+            payload = {
+                "fechaluna": fechainicio,
+                "idtablaresultados": "profile",
+                "nombreloteria": "Astro Luna"
+            }
         else:
             return resultados
-
-        print(f"🔄 {nombre_loteria}: Consultando últimos 5 años...")
-
         response = None
-        for intento in range(max_intentos):
+        for intento in range(maxintentos):
             try:
                 response = requests.post(url, data=payload, headers=headers, timeout=20, verify=False)
                 if response.status_code == 200:
                     break
                 time.sleep(2)
-            except:
+            except Exception:
                 time.sleep(2)
-
         if not response or response.status_code != 200:
             return resultados
-
-        soup = BeautifulSoup(response.text, 'html.parser')
-        tab_content = soup.find('div', {'id': id_tabla_resultados})
-
-        if not tab_content:
+        soup = BeautifulSoup(response.text, "html.parser")
+        tabcontent = soup.find("div", id=payload["idtablaresultados"])
+        if not tabcontent:
             return resultados
-
-        tabla = tab_content.find('table')
+        tabla = tabcontent.find("table")
         if not tabla:
             return resultados
-
-        tbody = tabla.find('tbody')
+        tbody = tabla.find("tbody")
         if not tbody:
             return resultados
-
-        filas = tbody.find_all('tr')
-        fecha_limite = datetime.now() - timedelta(days=1825)
-
+        filas = tbody.find_all("tr")
+        fechalimite = datetime.now() - timedelta(days=1825)  # 5 años
         for fila in filas:
-            celdas = fila.find_all('td')
-            if len(celdas) >= 4:
+            celdas = fila.find_all("td")
+            if len(celdas) == 4:
                 try:
-                    fecha_str = celdas[0].get_text(strip=True)
+                    fechastr = celdas[0].get_text(strip=True)
                     numero = celdas[1].get_text(strip=True)
                     signo = celdas[2].get_text(strip=True).lower()
-
-                    fecha_obj = validar_fecha(fecha_str)
-                    if fecha_obj is None:
+                    fechaobj = validarfecha(fechastr)
+                    if fechaobj is None or fechaobj < fechalimite:
                         continue
-                    
-                    if fecha_obj < fecha_limite:
-                        continue
-
-                    numero_limpio = numero.replace(' ', '')
-                    if numero_limpio.isdigit() and len(numero_limpio) == 4:
+                    numerolimpio = numero.replace(" ", "")
+                    if numerolimpio.isdigit() and len(numerolimpio) == 4:
                         resultados.append({
-                            "numero": numero_limpio.zfill(4),
+                            "numero": numerolimpio.zfill(4),
                             "serie": signo,
-                            "fecha": fecha_obj.strftime('%Y-%m-%d')
+                            "fecha": fechaobj.strftime("%Y-%m-%d")
                         })
-                except:
+                except Exception:
                     pass
-
-        print(f"✅ {nombre_loteria}: {len(resultados)} resultados (5 años)")
+        print(f"{tipoloteria.capitalize()} resultados últimos 5 años: {len(resultados)}")
         return resultados
-
     except Exception as e:
-        print(f"❌ {tipo_loteria.upper()}: Error")
+        print(f"Error consultando {tipoloteria}: {e}")
         return resultados
+
 
 def obtener_todas_loterias():
     """Obtiene resultados de todas las loterías"""
