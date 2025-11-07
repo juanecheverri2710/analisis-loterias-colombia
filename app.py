@@ -13,11 +13,9 @@ import urllib3
 import socket
 import time
 import warnings
-from functools import lru_cache
 
 warnings.filterwarnings('ignore')
 
-# ==================== CONFIGURACIÓN ====================
 app = Flask(__name__)
 app.config['PREFERRED_URL_SCHEME'] = 'https'
 app.config['TRUST_REMOTE_ADDR'] = True
@@ -28,7 +26,6 @@ ruta_cache = "cache_loterias.json"
 carpeta_static = "static"
 archivo_json_static = os.path.join(carpeta_static, ruta_archivo)
 
-# Variables globales con caché
 datos_ultimo_sorteo = {}
 predicciones_diarias = {}
 analisis_numeros_especiales = {}
@@ -36,7 +33,6 @@ tiempo_ultima_actualizacion = None
 proceso_en_curso = False
 lock = threading.Lock()
 
-# Números especiales a analizar
 NUMEROS_ESPECIALES = ["0419", "0116", "2710", "1012", "6888"]
 
 DIAS_LOTERIA = {
@@ -84,10 +80,12 @@ def asegurar_carpeta_static():
 def copiar_json_a_static():
     asegurar_carpeta_static()
     if os.path.exists(ruta_archivo):
-        shutil.copy(ruta_archivo, archivo_json_static)
+        try:
+            shutil.copy(ruta_archivo, archivo_json_static)
+        except:
+            pass
 
 def cargar_historico_local():
-    """Carga el histórico desde el archivo local"""
     try:
         with open(ruta_archivo, "r", encoding="utf-8") as f:
             return json.load(f)
@@ -95,7 +93,6 @@ def cargar_historico_local():
         return {}
 
 def cargar_cache():
-    """Carga el caché para mostrar datos anteriores"""
     try:
         with open(ruta_cache, "r", encoding="utf-8") as f:
             return json.load(f)
@@ -103,7 +100,6 @@ def cargar_cache():
         return {}
 
 def guardar_cache(datos):
-    """Guarda datos en caché para acceso rápido"""
     try:
         with open(ruta_cache, "w", encoding="utf-8") as f:
             json.dump(datos, f, ensure_ascii=False)
@@ -113,7 +109,7 @@ def guardar_cache(datos):
 # ==================== SCRAPING MEJORADO ====================
 
 def obtener_resultados_loteria_tabla(nombre, url):
-    """Obtiene resultados de una lotería CON REINTENTOS"""
+    """Obtiene TODOS los resultados sin límites"""
     resultados = []
     max_reintentos = 3
     
@@ -121,24 +117,29 @@ def obtener_resultados_loteria_tabla(nombre, url):
         try:
             response = requests.get(
                 url,
-                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
-                timeout=10,
+                headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                },
+                timeout=15,
                 verify=False
             )
             
             if response.status_code != 200:
                 if intento < max_reintentos - 1:
                     time.sleep(2 ** intento)
-                    continue
-                return resultados
+                continue
             
             soup = BeautifulSoup(response.text, "html.parser")
+            
+            # BUSCAR TODAS LAS TABLAS SIN LÍMITE
             tablas = soup.find_all("table")
             
             for tabla in tablas:
                 encabezados = [th.text.strip() for th in tabla.find_all("th")]
+                
                 if "# Sorteo" in encabezados and "Fecha" in encabezados and "Resultado" in encabezados:
-                    filas = tabla.find_all("tr")[1:]  # SIN LÍMITE - obtener todos
+                    # OBTENER TODAS LAS FILAS SIN LÍMITE
+                    filas = tabla.find_all("tr")[1:]
                     fecha_limite = datetime.now() - timedelta(days=1825)
                     
                     for fila in filas:
@@ -148,50 +149,59 @@ def obtener_resultados_loteria_tabla(nombre, url):
                                 fecha_texto = celdas[1].text.strip()
                                 fecha = validar_fecha(fecha_texto)
                                 
-                                if fecha is None or fecha < fecha_limite:
+                                if fecha is None:
                                     continue
+                                
+                                if fecha < fecha_limite:
+                                    break  # Ya pasó el límite, salir del loop
                                 
                                 numero = celdas[2].text.strip()
                                 serie = "No disponible"
                                 
+                                # Limpiar número
+                                numero_limpio = numero.split()[0] if numero else "0000"
+                                
                                 if "serie" in numero.lower():
                                     partes = numero.lower().split("serie")
-                                    numero = partes[0].strip()
-                                    serie = partes[1].strip()
+                                    numero_limpio = partes[0].strip().split()[0]
+                                    serie = partes[1].strip() if len(partes) > 1 else "No disponible"
                                 
                                 resultados.append({
-                                    "numero": numero.zfill(4),
+                                    "numero": numero_limpio.zfill(4),
                                     "serie": serie,
                                     "fecha": fecha.strftime("%Y-%m-%d")
                                 })
-                        except:
-                            pass
+                        except Exception as e:
+                            continue
                     
+                    print(f"✅ {nombre}: {len(resultados)} registros obtenidos")
                     return resultados
             
             return resultados
         
         except requests.Timeout:
+            print(f"⏱️ {nombre}: Timeout intento {intento + 1}")
             if intento < max_reintentos - 1:
                 time.sleep(3)
-                continue
-            return resultados
+            continue
         
         except Exception as e:
+            print(f"⚠️ {nombre}: Error intento {intento + 1} - {str(e)[:50]}")
             if intento < max_reintentos - 1:
                 time.sleep(2)
-                continue
-            return resultados
+            continue
     
+    print(f"❌ {nombre}: No se pudieron obtener datos")
     return resultados
 
 def obtener_resultados_superastro(tipo_loteria, fecha_inicio):
-    """Obtiene resultados de Astro Sol y Astro Luna CON REINTENTOS"""
+    """Obtiene TODOS los resultados de Astro Luna/Sol"""
     resultados = []
     max_reintentos = 3
     
     for intento in range(max_reintentos):
         try:
+            # MÉTODO 1: Intenta con superastro.com.co
             url = "https://superastro.com.co/historico.php"
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
@@ -210,75 +220,72 @@ def obtener_resultados_superastro(tipo_loteria, fecha_inicio):
             else:
                 return resultados
             
-            response = requests.post(url, data=payload, headers=headers, timeout=12, verify=False)
+            response = requests.post(
+                url, 
+                data=payload, 
+                headers=headers, 
+                timeout=15, 
+                verify=False
+            )
             
-            if response.status_code != 200:
-                if intento < max_reintentos - 1:
-                    time.sleep(2 ** intento)
-                    continue
-                return resultados
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.text, 'html.parser')
+                tab_content = soup.find('div', {'id': id_tabla})
+                
+                if tab_content:
+                    tabla = tab_content.find('table')
+                    if tabla:
+                        tbody = tabla.find('tbody')
+                        if tbody:
+                            filas = tbody.find_all('tr')  # SIN LÍMITE
+                            fecha_limite = datetime.now() - timedelta(days=1825)
+                            
+                            for fila in filas:
+                                try:
+                                    celdas = fila.find_all('td')
+                                    if len(celdas) >= 4:
+                                        fecha_str = celdas[0].get_text(strip=True)
+                                        numero = celdas[1].get_text(strip=True)
+                                        signo = celdas[2].get_text(strip=True).lower()
+                                        
+                                        fecha_obj = validar_fecha(fecha_str)
+                                        if fecha_obj is None:
+                                            continue
+                                        
+                                        if fecha_obj < fecha_limite:
+                                            break
+                                        
+                                        numero_limpio = numero.replace(' ', '')
+                                        if numero_limpio.isdigit() and len(numero_limpio) == 4:
+                                            resultados.append({
+                                                "numero": numero_limpio.zfill(4),
+                                                "serie": signo,
+                                                "fecha": fecha_obj.strftime('%Y-%m-%d')
+                                            })
+                                except:
+                                    pass
+                            
+                            print(f"✅ {nombre}: {len(resultados)} registros obtenidos")
+                            return resultados
             
-            soup = BeautifulSoup(response.text, 'html.parser')
-            tab_content = soup.find('div', {'id': id_tabla})
-            
-            if not tab_content:
-                if intento < max_reintentos - 1:
-                    time.sleep(2)
-                    continue
-                return resultados
-            
-            tabla = tab_content.find('table')
-            if not tabla:
-                return resultados
-            
-            tbody = tabla.find('tbody')
-            if not tbody:
-                return resultados
-            
-            filas = tbody.find_all('tr')  # SIN LÍMITE
-            fecha_limite = datetime.now() - timedelta(days=1825)
-            
-            for fila in filas:
-                try:
-                    celdas = fila.find_all('td')
-                    if len(celdas) >= 4:
-                        fecha_str = celdas[0].get_text(strip=True)
-                        numero = celdas[1].get_text(strip=True)
-                        signo = celdas[2].get_text(strip=True).lower()
-                        
-                        fecha_obj = validar_fecha(fecha_str)
-                        if fecha_obj is None or fecha_obj < fecha_limite:
-                            continue
-                        
-                        numero_limpio = numero.replace(' ', '')
-                        if numero_limpio.isdigit() and len(numero_limpio) == 4:
-                            resultados.append({
-                                "numero": numero_limpio.zfill(4),
-                                "serie": signo,
-                                "fecha": fecha_obj.strftime('%Y-%m-%d')
-                            })
-                except:
-                    pass
-            
-            return resultados
-        
-        except requests.Timeout:
             if intento < max_reintentos - 1:
                 time.sleep(3)
                 continue
-            return resultados
         
         except Exception as e:
+            print(f"⚠️ {nombre}: Error intento {intento + 1}")
             if intento < max_reintentos - 1:
-                time.sleep(2)
-                continue
-            return resultados
+                time.sleep(3)
+            continue
     
+    print(f"❌ {tipo_loteria.upper()}: No se pudieron obtener datos")
     return resultados
 
 def obtener_historico_paralelo():
     """Obtiene todas las loterías EN PARALELO"""
-    print("\n⚡ SCRAPING PARALELO - Consultando todas las loterías simultáneamente...")
+    print("\n" + "="*100)
+    print("⚡ SCRAPING PARALELO - Consultando todas las loterías simultáneamente")
+    print("="*100)
     
     loterias_urls = {
         "Boyacá": "https://resultadodelaloteria.com/colombia/loteria-de-boyaca",
@@ -299,8 +306,8 @@ def obtener_historico_paralelo():
     
     historico_completo = {}
     
-    # Scraping paralelo de loterías tradicionales
-    with ThreadPoolExecutor(max_workers=8) as executor:
+    # Scraping paralelo
+    with ThreadPoolExecutor(max_workers=10) as executor:
         futures = {
             executor.submit(obtener_resultados_loteria_tabla, nombre, url): nombre
             for nombre, url in loterias_urls.items()
@@ -309,14 +316,14 @@ def obtener_historico_paralelo():
         for future in as_completed(futures):
             nombre = futures[future]
             try:
-                resultados = future.result()
+                resultados = future.result(timeout=30)
                 historico_completo[nombre] = resultados
-                print(f"✅ {nombre}: {len(resultados)} registros")
             except Exception as e:
-                print(f"⚠️ {nombre}: Error")
+                print(f"❌ {nombre}: Timeout o error")
                 historico_completo[nombre] = []
     
-    # Astro Luna y Astro Sol en paralelo
+    # Astro Luna y Sol en paralelo
+    print("\n🔄 Consultando Astro Luna y Astro Sol...")
     fecha_inicio = (datetime.now() - timedelta(days=1825)).strftime('%Y-%m-%d')
     
     with ThreadPoolExecutor(max_workers=2) as executor:
@@ -324,24 +331,26 @@ def obtener_historico_paralelo():
         future_sol = executor.submit(obtener_resultados_superastro, 'sol', fecha_inicio)
         
         try:
-            historico_completo["Astro Luna"] = future_luna.result(timeout=20)
-            print(f"✅ Astro Luna: {len(historico_completo['Astro Luna'])} registros")
-        except Exception as e:
-            print(f"⚠️ Astro Luna: Error")
+            historico_completo["Astro Luna"] = future_luna.result(timeout=30)
+        except:
+            print(f"❌ Astro Luna: Timeout")
             historico_completo["Astro Luna"] = []
         
         try:
-            historico_completo["Astro Sol"] = future_sol.result(timeout=20)
-            print(f"✅ Astro Sol: {len(historico_completo['Astro Sol'])} registros")
-        except Exception as e:
-            print(f"⚠️ Astro Sol: Error")
+            historico_completo["Astro Sol"] = future_sol.result(timeout=30)
+        except:
+            print(f"❌ Astro Sol: Timeout")
             historico_completo["Astro Sol"] = []
     
-    print("✅ Scraping paralelo completado\n")
+    print("\n" + "="*100)
+    total_registros = sum(len(r) for r in historico_completo.values())
+    print(f"✅ TOTAL OBTENIDO: {total_registros} registros en {len(historico_completo)} loterías")
+    print("="*100 + "\n")
+    
     return historico_completo
 
 def guardar_historico_json(historico):
-    """Guarda el histórico en el archivo JSON"""
+    """Guarda el histórico en archivo"""
     try:
         with open(ruta_archivo, "w", encoding="utf-8") as f:
             json.dump(historico, f, indent=2, ensure_ascii=False)
@@ -363,7 +372,7 @@ def generar_datos_ultimo_sorteo():
         
         datos_ultimo_sorteo = {}
         for loteria, sorteos in datos.items():
-            if sorteos:
+            if sorteos and len(sorteos) > 0:
                 ultimo = sorteos[0]
                 datos_ultimo_sorteo[loteria] = {
                     "numero": ultimo.get("numero", "N/A"),
@@ -372,8 +381,8 @@ def generar_datos_ultimo_sorteo():
                 }
         
         print(f"✅ Últimos sorteos: {len(datos_ultimo_sorteo)} loterías")
-    except:
-        pass
+    except Exception as e:
+        print(f"⚠️ Error cargando últimos sorteos: {str(e)}")
 
 def generar_predicciones_diarias():
     """Genera predicciones para hoy"""
@@ -389,7 +398,7 @@ def generar_predicciones_diarias():
         
         for loteria, sorteos in datos.items():
             if loteria in DIAS_LOTERIA and hoy_dia in DIAS_LOTERIA[loteria]:
-                if sorteos:
+                if sorteos and len(sorteos) > 0:
                     fecha_limite = hoy - timedelta(days=365)
                     sorteos_validos = []
                     
@@ -400,9 +409,9 @@ def generar_predicciones_diarias():
                             if fecha_obj and fecha_obj >= fecha_limite:
                                 sorteos_validos.append(sorteo)
                     
-                    if sorteos_validos:
+                    if sorteos_validos and len(sorteos_validos) > 5:
                         numeros_freq = {}
-                        for sorteo in sorteos_validos[:50]:
+                        for sorteo in sorteos_validos:
                             num = sorteo.get("numero", "0").strip().lstrip('0') or "0"
                             numeros_freq[num] = numeros_freq.get(num, 0) + 1
                         
@@ -420,12 +429,12 @@ def generar_predicciones_diarias():
                                 "top_5": [num.zfill(4) for num, _ in top_numeros]
                             }
         
-        print(f"✅ Predicciones: {len(predicciones_diarias)} loterías")
+        print(f"✅ Predicciones: {len(predicciones_diarias)} loterías hoy")
     except Exception as e:
-        print(f"⚠️ Error predicciones: {str(e)}")
+        print(f"⚠️ Error en predicciones: {str(e)}")
 
 def analizar_numeros_especiales_rapido():
-    """Análisis rápido de números especiales"""
+    """Análisis de números especiales"""
     global analisis_numeros_especiales
     try:
         with open(ruta_archivo, 'r', encoding='utf-8') as f:
@@ -479,13 +488,13 @@ def analizar_numeros_especiales_rapido():
             
             analisis_numeros_especiales[numero_especial] = numero_info
         
-        print(f"✅ Análisis de números: completado")
+        print(f"✅ Análisis de números especiales: completado")
     
     except Exception as e:
-        print(f"⚠️ Error análisis: {str(e)}")
+        print(f"⚠️ Error en análisis: {str(e)}")
 
 def ejecutar_scraping_y_analisis():
-    """Función principal OPTIMIZADA"""
+    """Función principal"""
     global proceso_en_curso, tiempo_ultima_actualizacion
     
     with lock:
@@ -495,15 +504,15 @@ def ejecutar_scraping_y_analisis():
         proceso_en_curso = True
     
     try:
-        print("\n🚀 INICIANDO ACTUALIZACIÓN RÁPIDA...")
+        print("\n🚀 INICIANDO ACTUALIZACIÓN...")
         tiempo_inicio = time.time()
         
-        # Obtener histórico en paralelo
+        # Obtener histórico
         historico = obtener_historico_paralelo()
         
         # Guardar
         if guardar_historico_json(historico):
-            # Generar datos rápidamente
+            # Generar datos
             generar_datos_ultimo_sorteo()
             generar_predicciones_diarias()
             analizar_numeros_especiales_rapido()
@@ -514,7 +523,7 @@ def ejecutar_scraping_y_analisis():
             with lock:
                 tiempo_ultima_actualizacion = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
-            print(f"✅ ACTUALIZACIÓN COMPLETADA EN {tiempo_transcurrido}s")
+            print(f"\n✅ ACTUALIZACIÓN COMPLETADA EN {tiempo_transcurrido}s")
         else:
             print("❌ Error al guardar")
     
@@ -533,17 +542,15 @@ def index():
 
 @app.route("/start-analysis", methods=["POST"])
 def start_analysis():
-    """Inicia actualización en hilo separado"""
     if not proceso_en_curso:
         thread = threading.Thread(target=ejecutar_scraping_y_analisis, daemon=True)
         thread.start()
         return jsonify({"message": "Actualización iniciada", "status": "running"})
     else:
-        return jsonify({"message": "Ya hay una actualización en curso", "status": "already_running"})
+        return jsonify({"message": "Actualización ya en curso", "status": "already_running"})
 
 @app.route("/get-sorteos", methods=["GET"])
 def get_sorteos():
-    """Devuelve últimos resultados"""
     if not datos_ultimo_sorteo:
         cache = cargar_cache()
         if cache:
@@ -563,7 +570,6 @@ def get_sorteos():
 
 @app.route("/get-predicciones", methods=["GET"])
 def get_predicciones():
-    """Devuelve predicciones"""
     return jsonify({
         "data": predicciones_diarias,
         "ultimo_update": tiempo_ultima_actualizacion,
@@ -572,7 +578,6 @@ def get_predicciones():
 
 @app.route("/get-analisis-numeros", methods=["GET"])
 def get_analisis_numeros():
-    """Devuelve análisis de números especiales"""
     return jsonify({
         "data": analisis_numeros_especiales,
         "ultimo_update": tiempo_ultima_actualizacion,
@@ -581,7 +586,6 @@ def get_analisis_numeros():
 
 @app.route("/get-calendario", methods=["GET"])
 def get_calendario():
-    """Devuelve calendario de loterías"""
     dias_nombres = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
     calendario = {}
     
@@ -596,7 +600,6 @@ def get_calendario():
 
 @app.route("/get-estado", methods=["GET"])
 def get_estado():
-    """Estado actual del sistema"""
     try:
         if os.path.exists(ruta_archivo):
             with open(ruta_archivo, 'r', encoding='utf-8') as f:
@@ -617,7 +620,7 @@ def get_estado():
             return jsonify({
                 "status": "success",
                 "tiene_datos": False,
-                "mensaje": "Sin datos aún"
+                "mensaje": "Sin datos aún. Haz clic en 'Actualizar' para comenzar."
             })
     
     except Exception as e:
@@ -628,21 +631,13 @@ def get_estado():
 if __name__ == "__main__":
     puerto = int(os.environ.get('PORT', 5000))
     
-    try:
-        local_ip = socket.gethostbyname(socket.gethostname())
-    except:
-        local_ip = "127.0.0.1"
-    
     crear_o_validar_archivo_json()
     generar_datos_ultimo_sorteo()
     generar_predicciones_diarias()
     analizar_numeros_especiales_rapido()
     
     print("\n" + "="*70)
-    print("🚀 SERVIDOR FLASK OPTIMIZADO - ANÁLISIS DE LOTERÍAS")
-    print("="*70)
-    print(f"📍 Local: http://localhost:{puerto}")
-    print(f"📱 Red: http://{local_ip}:{puerto}")
+    print("🚀 SERVIDOR FLASK - ANÁLISIS DE LOTERÍAS")
     print("="*70 + "\n")
     
     app.run(host='0.0.0.0', port=puerto, debug=False, use_reloader=False)
