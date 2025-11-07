@@ -138,38 +138,38 @@
         const progressBar = document.getElementById('progressBar');
         const loadingTime = document.getElementById('loadingTime');
 
-        // Calendario
-       async function cargarCalendario() {
-    try {
-        const response = await fetch('/get-calendario');
-        const calendario = await response.json();
-        
-        const dias_orden = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
-        
-        const calendarioDiv = document.getElementById('calendario');
-        calendarioDiv.innerHTML = '';
+        // Calendario con orden correcto
+        async function cargarCalendario() {
+            try {
+                const response = await fetch('/get-calendario');
+                const calendario = await response.json();
+                
+                const dias_orden = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+                
+                const calendarioDiv = document.getElementById('calendario');
+                calendarioDiv.innerHTML = '';
 
-        // Iterar en orden fijo
-        for (const dia of dias_orden) {
-            if (calendario[dia]) {
-                const loterias = calendario[dia];
-                const card = document.createElement('div');
-                card.className = 'calendario-card';
-                card.innerHTML = `
-                    <h3>${dia}</h3>
-                    <div class="loteria-badges-container">
-                        ${loterias.map(l => `<span class="loteria-badge">${l}</span>`).join('')}
-                    </div>
-                `;
-                calendarioDiv.appendChild(card);
+                // Iterar en orden fijo
+                for (const dia of dias_orden) {
+                    if (calendario[dia]) {
+                        const loterias = calendario[dia];
+                        const card = document.createElement('div');
+                        card.className = 'calendario-card';
+                        card.innerHTML = `
+                            <h3>${dia}</h3>
+                            <div class="loteria-badges-container">
+                                ${loterias.map(l => `<span class="loteria-badge">${l}</span>`).join('')}
+                            </div>
+                        `;
+                        calendarioDiv.appendChild(card);
+                    }
+                }
+            } catch (error) {
+                console.error('Error cargando calendario:', error);
             }
         }
-    } catch (error) {
-        console.error('Error cargando calendario:', error);
-    }
-}
 
-        // Iniciar análisis
+        // Iniciar análisis con timeout mejorado
         btnAnalizar.addEventListener('click', async () => {
             btnAnalizar.disabled = true;
             statusMsg.textContent = '⏳ Iniciando análisis...';
@@ -183,59 +183,67 @@
             let progressValue = 0;
 
             const progressInterval = setInterval(() => {
-                progressValue += Math.random() * 30;
-                if (progressValue > 90) progressValue = 90;
+                progressValue += Math.random() * 20;
+                if (progressValue > 95) progressValue = 95;
                 progressBar.style.width = progressValue + '%';
 
                 const elapsed = Math.floor((Date.now() - startTime) / 1000);
                 loadingTime.textContent = elapsed + ' segundos';
-            }, 500);
+            }, 1000);
 
             try {
                 const response = await fetch('/start-analysis', { method: 'POST' });
                 
-                // Esperar a que se completen los resultados
+                // Esperar a que se completen los resultados (120 intentos = 2 minutos)
                 let intentos = 0;
-                const maxIntentos = 60;
+                const maxIntentos = 120;
 
                 const checkResults = setInterval(async () => {
                     intentos++;
-                    const resultsResponse = await fetch('/get-results');
-                    const data = await resultsResponse.json();
+                    console.log(`Intento ${intentos}/${maxIntentos}`);
+                    
+                    try {
+                        const resultsResponse = await fetch('/get-results');
+                        const data = await resultsResponse.json();
 
-                    if (data.result && data.result !== 'Resultados aún no disponibles.') {
-                        clearInterval(checkResults);
-                        clearInterval(progressInterval);
-                        progressBar.style.width = '100%';
+                        console.log('Respuesta:', data.result ? `${data.result.length} caracteres` : 'Sin datos');
 
-                        // Cargar sorteos
-                        const sorteosResponse = await fetch('/get-sorteos');
-                        const sorteos = await sorteosResponse.json();
-                        mostrarSorteos(sorteos);
+                        if (data.result && data.result !== 'Resultados aún no disponibles.' && data.result.length > 100) {
+                            clearInterval(checkResults);
+                            clearInterval(progressInterval);
+                            progressBar.style.width = '100%';
 
-                        // Cargar predicciones
-                        const prediccionesResponse = await fetch('/get-predicciones');
-                        const predicciones = await prediccionesResponse.json();
-                        mostrarPredicciones(predicciones);
+                            // Cargar sorteos
+                            const sorteosResponse = await fetch('/get-sorteos');
+                            const sorteos = await sorteosResponse.json();
+                            mostrarSorteos(sorteos);
 
-                        // Cargar análisis de números
-                        const numerosResponse = await fetch('/get-analisis-numeros');
-                        const numeros = await numerosResponse.json();
-                        mostrarNumerosEspeciales(numeros);
+                            // Cargar predicciones
+                            const prediccionesResponse = await fetch('/get-predicciones');
+                            const predicciones = await prediccionesResponse.json();
+                            mostrarPredicciones(predicciones);
 
-                        // Mostrar resultados
-                        resultsText.textContent = data.result;
-                        resultsSection.style.display = 'block';
+                            // Cargar análisis de números
+                            const numerosResponse = await fetch('/get-analisis-numeros');
+                            const numeros = await numerosResponse.json();
+                            mostrarNumerosEspeciales(numeros);
 
-                        loadingSection.style.display = 'none';
-                        statusMsg.textContent = '✅ ¡Análisis completado!';
-                        btnAnalizar.disabled = false;
-                    } else if (intentos >= maxIntentos) {
-                        clearInterval(checkResults);
-                        clearInterval(progressInterval);
-                        statusMsg.textContent = '⚠️ Análisis en progreso. Intenta nuevamente en unos momentos.';
-                        btnAnalizar.disabled = false;
-                        loadingSection.style.display = 'none';
+                            // Mostrar resultados
+                            resultsText.textContent = data.result;
+                            resultsSection.style.display = 'block';
+
+                            loadingSection.style.display = 'none';
+                            statusMsg.textContent = '✅ ¡Análisis completado!';
+                            btnAnalizar.disabled = false;
+                        } else if (intentos >= maxIntentos) {
+                            clearInterval(checkResults);
+                            clearInterval(progressInterval);
+                            statusMsg.textContent = '⚠️ El análisis tomó demasiado tiempo. Por favor, intenta nuevamente.';
+                            btnAnalizar.disabled = false;
+                            loadingSection.style.display = 'none';
+                        }
+                    } catch (error) {
+                        console.error('Error en checkResults:', error);
                     }
                 }, 1000);
 
