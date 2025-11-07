@@ -4,7 +4,7 @@ import shutil
 import os
 from datetime import datetime, timedelta
 import pandas as pd
-import numpy as 
+import numpy as np
 import requests
 from bs4 import BeautifulSoup
 from flask import Flask, render_template, request, jsonify, send_from_directory
