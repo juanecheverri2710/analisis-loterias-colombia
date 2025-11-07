@@ -192,3 +192,374 @@
         }
 
         .error-message {
+            color: #721c24;
+            background: #f8d7da;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .footer {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-top: 30px;
+        }
+
+        .footer h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .footer ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .footer li {
+            padding-left: 20px;
+            position: relative;
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        .footer li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <h1>📊 Análisis Inteligente de Loterías Colombia</h1>
+            <p>Predicciones basadas en IA y análisis histórico de 5 años</p>
+        </div>
+
+        <!-- CONTROLES -->
+        <div class="controls">
+            <button class="btn" id="btnActualizar">🚀 Actualizar Datos</button>
+            <div id="statusActualizacion" style="flex: 1;"></div>
+        </div>
+
+        <!-- ESTADO DEL SISTEMA -->
+        <div id="estadoSistema"></div>
+
+        <!-- GRID PRINCIPAL -->
+        <div class="grid">
+            <!-- CALENDARIO -->
+            <div class="card">
+                <h2>📅 Calendario de Loterías</h2>
+                <p>Loterías disponibles por día de la semana</p>
+                <div id="calendario" class="loading-message">Cargando calendario...</div>
+                <div id="errorCalendario"></div>
+            </div>
+
+            <!-- PREDICCIONES -->
+            <div class="card">
+                <h2>🎯 Predicciones de HOY</h2>
+                <p>Basadas en análisis de frecuencia e historial</p>
+                <div id="predicciones" class="loading-message">Cargando predicciones...</div>
+                <div id="errorPredicciones"></div>
+            </div>
+
+            <!-- NÚMEROS ESPECIALES -->
+            <div class="card">
+                <h2>🔮 Predicción de Números Especiales</h2>
+                <p>Sin datos de números especiales</p>
+                <div id="numerosEspeciales" class="loading-message">Cargando números especiales...</div>
+                <div id="errorNumerosEspeciales"></div>
+            </div>
+
+            <!-- ÚLTIMOS RESULTADOS -->
+            <div class="card">
+                <h2>💎 Últimos Resultados</h2>
+                <p>Números más recientes de cada lotería</p>
+                <div id="sorteos" class="loading-message">Cargando resultados...</div>
+                <div id="errorSorteos"></div>
+            </div>
+
+            <!-- ANÁLISIS TÉCNICO -->
+            <div class="card">
+                <h2>📊 Análisis Técnico Detallado</h2>
+                <p>⏳ Análisis pendiente...</p>
+                <div id="analisisTecnico">Haz clic en "Actualizar Datos" para ver el desglose completo del modelo IA</div>
+                <div id="errorAnalisisTecnico"></div>
+            </div>
+        </div>
+
+        <!-- FOOTER CON CARACTERÍSTICAS -->
+        <div class="footer">
+            <h3>✨ Características</h3>
+            <ul>
+                <li><strong>16 Loterías Colombianas:</strong> Boyacá, Cruz Roja, Manizales, Cundinamarca, Tolima, Medellín, Santander, Huila, Risaralda, Bogotá, Meta, Quindío, Valle, Cauca, Astro Luna y Astro Sol</li>
+                <li><strong>Predicciones Inteligentes:</strong> Basadas en análisis de frecuencia del JSON histórico</li>
+                <li><strong>Signos Zodiacales:</strong> Análisis completo para Astro Luna y Astro Sol</li>
+                <li><strong>Modelo XGBoost:</strong> Algoritmo de Machine Learning con balanceo SMOTE</li>
+                <li><strong>5 Años de Datos:</strong> Más de 1,825 días de histórico analizado</li>
+                <li><strong>Análisis de Números:</strong> Probabilidad estimada, últimas apariciones e intervalo promedio</li>
+                <li><strong>⚖️ Balanceo SMOTE:</strong> Para mejorar precisión en predicciones</li>
+                <li><strong>Predicciones Diarias:</strong> Según el día de juego de cada lotería (calendario actualizado)</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        let intervaloActual = null;
+
+        // ==================== CARGAR CALENDARIO ====================
+        async function cargarCalendario() {
+            try {
+                const response = await fetch(`${API_BASE}/get-calendario`, { timeout: 10000 });
+                if (!response.ok) throw new Error('Error al cargar calendario');
+                
+                const calendario = await response.json();
+                
+                if (!calendario || Object.keys(calendario).length === 0) {
+                    throw new Error('No hay datos de calendario');
+                }
+                
+                let html = '<div class="grid-dias">';
+                for (const [dia, loterias] of Object.entries(calendario)) {
+                    html += `
+                        <div class="dia-card">
+                            <h3>${dia}</h3>
+                            <ul>
+                                ${loterias.map(l => `<li>• ${l}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+                
+                document.getElementById('calendario').innerHTML = html;
+                document.getElementById('errorCalendario').innerHTML = '';
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('errorCalendario').innerHTML = `<div class="error-message">❌ ${error.message}</div>`;
+                document.getElementById('calendario').innerHTML = '';
+            }
+        }
+
+        // ==================== CARGAR PREDICCIONES ====================
+        async function cargarPredicciones() {
+            try {
+                const response = await fetch(`${API_BASE}/get-predicciones`, { timeout: 10000 });
+                if (!response.ok) throw new Error('Error al cargar predicciones');
+                
+                const data = await response.json();
+                const predicciones = data && data.data ? data.data : {};
+                
+                if (Object.keys(predicciones).length === 0) {
+                    document.getElementById('predicciones').innerHTML = '<div class="loading-message">📭 Sin predicciones para hoy</div>';
+                    return;
+                }
+
+                let html = '<ul class="list">';
+                for (const [loteria, pred] of Object.entries(predicciones)) {
+                    html += `
+                        <li>
+                            <strong>${loteria}</strong><br>
+                            🎰 ${pred.numero} | ♈ ${pred.signo}<br>
+                            <small>Confianza: ${pred.confianza}% | Top 5: ${pred.top_5.join(', ')}</small>
+                        </li>
+                    `;
+                }
+                html += '</ul>';
+                
+                document.getElementById('predicciones').innerHTML = html;
+                document.getElementById('errorPredicciones').innerHTML = '';
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('errorPredicciones').innerHTML = `<div class="error-message">❌ ${error.message}</div>`;
+                document.getElementById('predicciones').innerHTML = '';
+            }
+        }
+
+        // ==================== CARGAR NÚMEROS ESPECIALES ====================
+        async function cargarNumerosEspeciales() {
+            try {
+                const response = await fetch(`${API_BASE}/get-analisis-numeros`, { timeout: 10000 });
+                if (!response.ok) throw new Error('Error al cargar números especiales');
+                
+                const data = await response.json();
+                const analisis = data && data.data ? data.data : {};
+                
+                if (Object.keys(analisis).length === 0) {
+                    document.getElementById('numerosEspeciales').innerHTML = '<div class="loading-message">📭 Sin datos de números especiales</div>';
+                    return;
+                }
+
+                let html = '<ul class="list">';
+                for (const [numero, info] of Object.entries(analisis)) {
+                    html += `
+                        <li>
+                            <strong>${numero}</strong><br>
+                            Apariciones: ${info.apariciones_total} | Probabilidad: ${info.probabilidad.toFixed(2)}%<br>
+                            <small>Próxima predicción: ${info.proxima_prediccion || 'N/A'}</small>
+                        </li>
+                    `;
+                }
+                html += '</ul>';
+                
+                document.getElementById('numerosEspeciales').innerHTML = html;
+                document.getElementById('errorNumerosEspeciales').innerHTML = '';
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('errorNumerosEspeciales').innerHTML = `<div class="error-message">❌ ${error.message}</div>`;
+                document.getElementById('numerosEspeciales').innerHTML = '';
+            }
+        }
+
+        // ==================== CARGAR ÚLTIMOS RESULTADOS ====================
+        async function cargarSorteos() {
+            try {
+                const response = await fetch(`${API_BASE}/get-sorteos`, { timeout: 10000 });
+                if (!response.ok) throw new Error('Error al cargar resultados');
+                
+                const data = await response.json();
+                const sorteos = data && data.data ? data.data : {};
+                
+                if (Object.keys(sorteos).length === 0) {
+                    document.getElementById('sorteos').innerHTML = '<div class="loading-message">📭 Sin resultados disponibles</div>';
+                    return;
+                }
+
+                let html = '<ul class="list">';
+                for (const [loteria, resultado] of Object.entries(sorteos)) {
+                    html += `
+                        <li>
+                            <strong>${loteria}</strong><br>
+                            🎰 ${resultado.numero} | 📅 ${resultado.fecha}<br>
+                            <small>♈ ${resultado.signo}</small>
+                        </li>
+                    `;
+                }
+                html += '</ul>';
+                
+                document.getElementById('sorteos').innerHTML = html;
+                document.getElementById('errorSorteos').innerHTML = '';
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('errorSorteos').innerHTML = `<div class="error-message">❌ ${error.message}</div>`;
+                document.getElementById('sorteos').innerHTML = '';
+            }
+        }
+
+        // ==================== CARGAR ESTADO DEL SISTEMA ====================
+        async function cargarEstado() {
+            try {
+                const response = await fetch(`${API_BASE}/get-estado`, { timeout: 10000 });
+                if (!response.ok) throw new Error('Error al cargar estado');
+                
+                const data = await response.json();
+                
+                if (!data) throw new Error('Sin datos de estado');
+                
+                let html = '';
+                if (data.tiene_datos) {
+                    html += `<div class="status success">✅ ${data.total_registros} registros en ${data.total_loterias} loterías</div>`;
+                } else {
+                    html += `<div class="status info">📭 Sin datos. Haz clic en "Actualizar Datos"</div>`;
+                }
+                
+                if (data.en_proceso) {
+                    html += `<div class="status loading">Actualización en curso...</div>`;
+                }
+                
+                if (data.ultimo_update) {
+                    html += `<div style="color: #999; font-size: 0.9em; margin-top: 10px;">Última actualización: ${data.ultimo_update}</div>`;
+                }
+                
+                document.getElementById('estadoSistema').innerHTML = html;
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('estadoSistema').innerHTML = `<div class="error-message">❌ Error cargando estado</div>`;
+            }
+        }
+
+        // ==================== INICIAR ANÁLISIS ====================
+        async function iniciarAnalisis() {
+            const btn = document.getElementById('btnActualizar');
+            const statusDiv = document.getElementById('statusActualizacion');
+            
+            btn.disabled = true;
+            btn.classList.add('loading');
+            statusDiv.innerHTML = '<div class="status loading">Iniciando actualización...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/start-analysis`, {
+                    method: 'POST',
+                    timeout: 10000
+                });
+                
+                if (!response.ok) throw new Error('Error al iniciar análisis');
+                
+                const data = await response.json();
+                statusDiv.innerHTML = `<div class="status info">${data.message}</div>`;
+
+                if (intervaloActual) {
+                    clearInterval(intervaloActual);
+                }
+
+                let intentos = 0;
+                intervaloActual = setInterval(() => {
+                    intentos++;
+                    cargarEstado();
+                    cargarCalendario();
+                    cargarSorteos();
+                    cargarPredicciones();
+                    cargarNumerosEspeciales();
+
+                    if (intentos > 40) {
+                        clearInterval(intervaloActual);
+                        intervaloActual = null;
+                        btn.disabled = false;
+                        btn.classList.remove('loading');
+                    }
+                }, 3000);
+
+            } catch (error) {
+                console.error('Error:', error);
+                statusDiv.innerHTML = `<div class="status error">❌ ${error.message}</div>`;
+                btn.disabled = false;
+                btn.classList.remove('loading');
+            }
+        }
+
+        // ==================== EVENT LISTENERS ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            const btnActualizar = document.getElementById('btnActualizar');
+            if (btnActualizar) {
+                btnActualizar.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    iniciarAnalisis();
+                });
+            }
+
+            // Cargar todo al iniciar
+            cargarTodo();
+
+            // Recargar cada 60 segundos
+            setInterval(cargarTodo, 60000);
+        });
+
+        // ==================== CARGAR TODO ====================
+        function cargarTodo() {
+            cargarEstado();
+            cargarCalendario();
+            cargarSorteos();
+            cargarPredicciones();
+            cargarNumerosEspeciales();
+        }
+    </script>
+</body>
+</html>
