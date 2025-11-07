@@ -213,6 +213,22 @@ html, body {
     min-height: 24px;
 }
 
+.section-loading {
+    display: flex;
+    justify-content: center;
+    padding: 50px 20px;
+}
+
+.loading-box {
+    text-align: center;
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+}
+
 .spinner-large {
     width: 80px;
     height: 80px;
@@ -226,6 +242,41 @@ html, body {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+.loading-title {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 15px 0;
+}
+
+.loading-desc {
+    color: var(--text-light);
+    margin-bottom: 20px;
+    font-size: 1em;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 20px 0;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.loading-time {
+    color: var(--text-light);
+    font-size: 0.9em;
+    margin-top: 15px;
 }
 
 .section-title {
@@ -300,6 +351,13 @@ html, body {
     font-size: 0.85em;
     opacity: 0.85;
     font-style: italic;
+}
+
+.prediccion-label {
+    font-size: 0.85em;
+    opacity: 0.9;
+    font-weight: 500;
+    margin-top: 5px;
 }
 
 .section-numeros-especiales {
@@ -472,6 +530,52 @@ html, body {
     margin-top: 10px;
 }
 
+.section-results {
+    margin: 40px 0;
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.btn-download {
+    background: linear-gradient(135deg, var(--success) 0%, #45b7aa 100%);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(81, 207, 102, 0.3);
+}
+
+.btn-download:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(81, 207, 102, 0.4);
+}
+
+.results-box {
+    background: white;
+    padding: 30px;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    overflow-x: auto;
+}
+
+.results-box pre {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    line-height: 1.6;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
 .section-features {
     background: white;
     padding: 30px;
@@ -535,61 +639,16 @@ html, body {
         grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     }
 
-    .numero-especial-stats {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 480px) {
-    .container {
-        padding: 10px;
+    .results-header {
+        flex-direction: column;
+        align-items: flex-start;
     }
 
-    .header {
-        padding: 30px 15px;
-        margin-bottom: 20px;
-    }
-
-    .main {
-        gap: 20px;
-    }
-
-    .section-stats {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-    }
-
-    .stat-box {
-        padding: 15px 10px;
-    }
-
-    .stat-value {
-        font-size: 1.8em;
-    }
-
-    .stat-text {
+    .results-box pre {
         font-size: 0.85em;
     }
 
-    .btn-large {
-        padding: 15px 30px;
-        font-size: 1em;
-        max-width: 100%;
-    }
-
-    .prediccion-numero {
-        font-size: 1.8em;
-    }
-
-    .sorteo-card-num {
-        font-size: 1.6em;
-    }
-
-    .numero-especial-numero {
-        font-size: 1.5em;
-    }
-
-    .features-list p {
-        font-size: 0.95em;
+    .numero-especial-stats {
+        grid-template-columns: 1fr;
     }
 }
