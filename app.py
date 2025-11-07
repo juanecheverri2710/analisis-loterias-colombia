@@ -19,6 +19,7 @@ import socket
 import time
 import warnings
 from scipy import stats
+from pytz import timezone  # ✅ PARCHE 1: Agregar timezone
 
 warnings.filterwarnings('ignore')
 
@@ -26,6 +27,9 @@ warnings.filterwarnings('ignore')
 app = Flask(__name__)
 app.config['PREFERRED_URL_SCHEME'] = 'https'
 app.config['TRUST_REMOTE_ADDR'] = True
+
+# ✅ PARCHE 1: Timezone para Colombia
+tz_colombia = timezone('America/Bogota')
 
 # Rutas y variables globales
 ruta_archivo = "resultados_loterias.json"
@@ -456,6 +460,7 @@ def combinar_resultados_acumulativo(historico, nuevos):
 
     return resultado_final
 
+# ✅ PARCHE 3: Corregir generar_datos_ultimo_sorteo()
 def generar_datos_ultimo_sorteo():
     """Genera datos del último sorteo de cada lotería"""
     global datos_ultimo_sorteo
@@ -466,15 +471,31 @@ def generar_datos_ultimo_sorteo():
         datos_ultimo_sorteo = {}
 
         for loteria, sorteos in datos.items():
-            if sorteos:
-                ultimo = sorteos[0]
-                datos_ultimo_sorteo[loteria] = {
-                    "numero": ultimo.get("numero", "N/A"),
-                    "signo": ultimo.get("serie", "N/A"),
-                    "fecha": ultimo.get("fecha", "N/A")
-                }
+            if sorteos and len(sorteos) > 0:
+                # Buscar el sorteo más reciente válido
+                for sorteo in sorteos:
+                    numero = sorteo.get("numero", "").strip()
+                    fecha_str = sorteo.get("fecha", "")
+                    serie = sorteo.get("serie", "No disponible")
+                    
+                    # Validar que el número no esté vacío
+                    if numero and fecha_str:
+                        # Validar fecha
+                        fecha_obj = validar_fecha(fecha_str)
+                        if fecha_obj:
+                            datos_ultimo_sorteo[loteria] = {
+                                "numero": numero.zfill(4),
+                                "signo": serie,
+                                "fecha": fecha_str,
+                                "dias_atras": (datetime.now() - fecha_obj).days
+                            }
+                            break  # Tomar el primero válido (más reciente)
 
         print(f"✅ Datos del último sorteo cargados: {len(datos_ultimo_sorteo)} loterías")
+        
+        # Debug: mostrar qué se cargó
+        for loteria, datos in list(datos_ultimo_sorteo.items())[:3]:
+            print(f"   📌 {loteria}: {datos['numero']} ({datos['fecha']})")
 
     except Exception as e:
         print(f"⚠️ Error cargando datos: {str(e)}")
@@ -636,6 +657,7 @@ def analizar_numeros_especiales_probabilidad():
         import traceback
         traceback.print_exc()
 
+# ✅ PARCHE 2: Corregir generar_predicciones_diarias() con timezone
 def generar_predicciones_diarias():
     """Genera predicciones de números ganadores según el día de hoy con validación de fechas"""
     global predicciones_diarias
@@ -643,7 +665,8 @@ def generar_predicciones_diarias():
         with open(ruta_archivo, 'r', encoding='utf-8') as f:
             datos = json.load(f)
 
-        hoy = datetime.now()
+        # ✅ PARCHE 2: Usar timezone de Colombia
+        hoy = datetime.now(tz=tz_colombia)
         hoy_dia = hoy.weekday()  # 0=Lunes, 6=Domingo
 
         dias_nombres = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
@@ -688,6 +711,7 @@ def generar_predicciones_diarias():
                         # Seleccionar el número con mayor frecuencia
                         if top_numeros:
                             numero_predicho = top_numeros[0][0].zfill(4)
+                            freq = top_numeros[0][1]
 
                             # Para Astro Luna y Astro Sol, agregar signo
                             if loteria in ["Astro Luna", "Astro Sol"] and numero_predicho.lstrip('0') or "0" in signos_freq:
@@ -700,19 +724,19 @@ def generar_predicciones_diarias():
                                 predicciones_diarias[loteria] = {
                                     "numero": numero_predicho,
                                     "signo": signo_top,
-                                    "frecuencia": top_numeros[0][1]
+                                    "frecuencia": freq
                                 }
 
-                                print(f"🎯 {loteria}: {numero_predicho} ({signo_top}) - {top_numeros[0][1]} apariciones")
+                                print(f"🎯 {loteria}: {numero_predicho} ({signo_top}) - {freq} apariciones")
 
                             else:
                                 predicciones_diarias[loteria] = {
                                     "numero": numero_predicho,
                                     "signo": "N/A",
-                                    "frecuencia": top_numeros[0][1]
+                                    "frecuencia": freq
                                 }
 
-                                print(f"🎯 {loteria}: {numero_predicho} - {top_numeros[0][1]} apariciones")
+                                print(f"🎯 {loteria}: {numero_predicho} - {freq} apariciones")
 
         print(f"\n✅ Predicciones generadas para HOY ({dias_nombres[hoy_dia]})")
         print(f" Loterías que juegan hoy: {len(predicciones_diarias)}")
@@ -1147,6 +1171,30 @@ def get_predicciones():
 def get_analisis_numeros():
     """Devuelve análisis de probabilidad de números especiales"""
     return jsonify({"status": "success", "analisis": analisis_numeros_especiales})
+
+# ✅ PARCHE 4: Agregar ruta /get-analisis-ia
+@app.route("/get-analisis-ia", methods=["GET"])
+def get_analisis_ia():
+    """Devuelve los resultados del análisis del modelo de IA"""
+    global analisis_texto
+    try:
+        if analisis_texto and len(analisis_texto) > 0:
+            return jsonify({
+                "status": "success",
+                "analisis_ia": analisis_texto,
+                "timestamp": datetime.now().isoformat()
+            })
+        else:
+            return jsonify({
+                "status": "info",
+                "analisis_ia": "Análisis aún no disponible. Ejecuta /start-analysis primero.",
+                "timestamp": datetime.now().isoformat()
+            })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 @app.route('/static/<path:filename>')
 def static_files(filename):
