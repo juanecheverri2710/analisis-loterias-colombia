@@ -958,18 +958,21 @@ def static_files(filename):
 
 @app.route("/get-calendario", methods=["GET"])
 def get_calendario():
-    """Devuelve el calendario de loterías por día"""
+    """Devuelve el calendario de loterías por día en orden"""
     dias_nombres = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-    calendario = {}
     
+    # Crear calendario vacío en orden
+    calendario_ordenado = {}
+    for dia_nombre in dias_nombres:
+        calendario_ordenado[dia_nombre] = []
+    
+    # Llenar el calendario
     for loteria, dias in DIAS_LOTERIA.items():
         for dia in dias:
             dia_nombre = dias_nombres[dia]
-            if dia_nombre not in calendario:
-                calendario[dia_nombre] = []
-            calendario[dia_nombre].append(loteria)
+            calendario_ordenado[dia_nombre].append(loteria)
     
-    return jsonify(calendario)
+    return jsonify(calendario_ordenado)
 
 @app.route("/obtener-historico", methods=["POST"])
 def obtener_historico():
