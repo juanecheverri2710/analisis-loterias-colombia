@@ -1,127 +1,44 @@
 {
-  "Cundinamarca": [
-    {
-      "numero": "2120",
-      "serie": "186 ver secos",
-      "fecha": "2025-11-04"
-    },
-    {
-      "numero": "6717",
-      "serie": "078 ver secos",
-      "fecha": "2025-10-27"
-    },
-    {
-      "numero": "8421",
-      "serie": "101 ver secos",
-      "fecha": "2025-10-20"
-    },
-    {
-      "numero": "8568",
-      "serie": "294 ver secos",
-      "fecha": "2025-10-14"
-    },
-    {
-      "numero": "4452",
-      "serie": "157 ver secos",
-      "fecha": "2025-10-06"
-    },
-    {
-      "numero": "1544",
-      "serie": "005 ver secos",
-      "fecha": "2025-09-29"
-    },
-    {
-      "numero": "8715",
-      "serie": "007 ver secos",
-      "fecha": "2025-09-22"
-    },
-    {
-      "numero": "1205",
-      "serie": "162 ver secos",
-      "fecha": "2025-09-15"
-    },
-    {
-      "numero": "2448",
-      "serie": "214 ver secos",
-      "fecha": "2025-09-08"
-    },
-    {
-      "numero": "3343",
-      "serie": "142 ver secos",
-      "fecha": "2025-09-01"
-    }
+  "Boyacá": [
+    {"numero": "5119", "serie": "363 ver secos", "fecha": "2025-11-01"}
   ],
-  "Huila": [
-    {
-      "numero": "1729",
-      "serie": "040 ver secos",
-      "fecha": "2025-11-04"
-    },
-    {
-      "numero": "4622",
-      "serie": "157 ver secos",
-      "fecha": "2025-10-28"
-    },
-    {
-      "numero": "0573",
-      "serie": "096 ver secos",
-      "fecha": "2025-10-21"
-    },
-    {
-      "numero": "8305",
-      "serie": "141 ver secos",
-      "fecha": "2025-10-14"
-    },
-    {
-      "numero": "5963",
-      "serie": "026 ver secos",
-      "fecha": "2025-10-07"
-    },
-    {
-      "numero": "7716",
-      "serie": "084 ver secos",
-      "fecha": "2025-09-30"
-    },
-    {
-      "numero": "6777",
-      "serie": "092 ver secos",
-      "fecha": "2025-09-23"
-    },
-    {
-      "numero": "4477",
-      "serie": "049 ver secos",
-      "fecha": "2025-09-16"
-    },
-    {
-      "numero": "6416",
-      "serie": "190 ver secos",
-      "fecha": "2025-09-09"
-    },
-    {
-      "numero": "7151",
-      "serie": "033 ver secos",
-      "fecha": "2025-09-02"
-    }
+  "Cruz Roja": [
+    {"numero": "9110", "serie": "026 ver secos", "fecha": "2025-11-04"}
+  ],
+  "Manizales": [
+    {"numero": "5182", "serie": "049 ver secos", "fecha": "2025-10-29"}
+  ],
+  "Cundinamarca": [
+    {"numero": "2120", "serie": "186 ver secos", "fecha": "2025-11-04"}
   ],
   "Tolima": [
-    {
-      "numero": "4620",
-      "serie": "175 ver secos",
-      "fecha": "2025-11-04"
-    },
-    {
-      "numero": "4820",
-      "serie": "123 ver secos",
-      "fecha": "2025-10-27"
-    },
-    {
-      "numero": "8353",
-      "serie": "051 ver secos",
-      "fecha": "2025-10-20"
-    },
-    {
-      "numero": "2241",
-      "serie": "079 ver secos",
-      "fecha": "2025-10-14"
-    },
-    {
+    {"numero": "4620", "serie": "175 ver secos", "fecha": "2025-11-04"}
+  ],
+  "Medellín": [
+    {"numero": "1279", "serie": "260 ver secos", "fecha": "2025-10-31"}
+  ],
+  "Santander": [
+    {"numero": "6728", "serie": "017 ver secos", "fecha": "2025-10-31"}
+  ],
+  "Huila": [
+    {"numero": "1729", "serie": "040 ver secos", "fecha": "2025-11-04"}
+  ],
+  "Risaralda": [
+    {"numero": "4963", "serie": "151 ver secos", "fecha": "2025-10-31"}
+  ],
+  "Bogotá": [
+    {"numero": "4913", "serie": "193 ver secos", "fecha": "2025-10-30"}
+  ],
+  "Meta": [
+    {"numero": "9130", "serie": "010 ver secos", "fecha": "2025-10-29"}
+  ],
+  "Quindío": [
+    {"numero": "4715", "serie": "139 ver secos", "fecha": "2025-10-30"}
+  ],
+  "Valle": [
+    {"numero": "3612", "serie": "249 ver secos", "fecha": "2025-10-29"}
+  ],
+  "Cauca": [
+    {"numero": "9648", "serie": "082 ver secos", "fecha": "2025-11-01"}
+  ]
+}
