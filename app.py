@@ -99,7 +99,7 @@ def obtener_resultados_loteria_tabla(nombre, url):
     """Obtiene resultados de loterías tradicionales desde resultadodelaloteria.com"""
     resultados = []
     try:
-        response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10, verify=False)
+        response = requests.get(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"}, timeout=10, verify=False)
         if response.status_code != 200:
             print(f"⚠️ {nombre}: Error HTTP {response.status_code}")
             return resultados
@@ -345,17 +345,21 @@ def generar_datos_ultimo_sorteo():
         
         datos_ultimo_sorteo = {}
         for loteria, sorteos in datos.items():
-            if sorteos:
+            if sorteos and len(sorteos) > 0:
                 ultimo = sorteos[0]
                 datos_ultimo_sorteo[loteria] = {
-                    "numero": ultimo.get("numero", "N/A"),
-                    "signo": ultimo.get("serie", "N/A"),
-                    "fecha": ultimo.get("fecha", "N/A")
+                    "numero": str(ultimo.get("numero", "N/A")).zfill(4),
+                    "signo": str(ultimo.get("serie", "N/A")),
+                    "fecha": str(ultimo.get("fecha", "N/A"))
                 }
         
         print(f"✅ Datos del último sorteo cargados: {len(datos_ultimo_sorteo)} loterías")
+        return True
     except Exception as e:
         print(f"⚠️ Error cargando datos: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return False
 
 # ==================== ANÁLISIS DE NÚMEROS ESPECIALES ====================
 def analizar_numeros_especiales_probabilidad():
@@ -524,34 +528,22 @@ def generar_predicciones_diarias():
         
         for loteria, sorteos in datos.items():
             if loteria in DIAS_LOTERIA and hoy_dia in DIAS_LOTERIA[loteria]:
-                if sorteos:
-                    fecha_limite = hoy - timedelta(days=365)
-                    sorteos_validos = []
+                if sorteos and len(sorteos) > 0:
+                    sorteos_recientes = sorteos[:10]
+                    numeros_freq = {}
                     
-                    for sorteo in sorteos:
-                        fecha_str = sorteo.get("fecha", "")
-                        if fecha_str:
-                            fecha_obj = validar_fecha(fecha_str)
-                            if fecha_obj and fecha_obj >= fecha_limite:
-                                sorteos_validos.append(sorteo)
+                    for sorteo in sorteos_recientes:
+                        num = str(sorteo.get("numero", "0")).strip().lstrip('0') or "0"
+                        numeros_freq[num] = numeros_freq.get(num, 0) + 1
                     
-                    if sorteos_validos:
-                        numeros_freq = {}
-                        
-                        for sorteo in sorteos_validos:
-                            num = sorteo.get("numero", "0").strip().lstrip('0') or "0"
-                            numeros_freq[num] = numeros_freq.get(num, 0) + 1
-                        
-                        top_numeros = sorted(numeros_freq.items(), key=lambda x: x[1], reverse=True)[:5]
-                        
-                        if top_numeros:
-                            numero_predicho = top_numeros[0][0].zfill(4)
-                            predicciones_diarias[loteria] = {
-                                "numero": numero_predicho,
-                                "frecuencia": top_numeros[0][1]
-                            }
-                            
-                            print(f"🎯 {loteria}: {numero_predicho} - {top_numeros[0][1]} apariciones")
+                    if numeros_freq:
+                        top_numeros = sorted(numeros_freq.items(), key=lambda x: x[1], reverse=True)
+                        numero_predicho = top_numeros[0][0].zfill(4)
+                        predicciones_diarias[loteria] = {
+                            "numero": numero_predicho,
+                            "frecuencia": top_numeros[0][1]
+                        }
+                        print(f"🎯 {loteria}: {numero_predicho} - {top_numeros[0][1]} apariciones")
         
         print(f"\n✅ Predicciones generadas para HOY ({dias_nombres[hoy_dia]})")
         print(f" Loterías que juegan hoy: {len(predicciones_diarias)}")
