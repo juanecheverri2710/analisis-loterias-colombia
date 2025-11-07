@@ -46,70 +46,10 @@
                 <h2 class="section-title">📅 Calendario de Loterías</h2>
                 <p class="section-subtitle">Días de juego por cada lotería</p>
                 
-                <div class="calendario-grid">
-                    <!-- Lunes -->
-                    <div class="calendario-card">
-                        <h3>Lunes 📍</h3>
-                        <div class="loteria-badges-container">
-                            <span class="loteria-badge">Cundinamarca</span>
-                            <span class="loteria-badge">Tolima</span>
-                        </div>
-                    </div>
-
-                    <!-- Martes -->
-                    <div class="calendario-card">
-                        <h3>Martes 📍</h3>
-                        <div class="loteria-badges-container">
-                            <span class="loteria-badge">Cruz Roja</span>
-                            <span class="loteria-badge">Huila</span>
-                        </div>
-                    </div>
-
-                    <!-- Miércoles ✅ AGREGADO -->
-                    <div class="calendario-card">
-                        <h3>Miércoles 📍</h3>
-                        <div class="loteria-badges-container">
-                            <span class="loteria-badge">Manizales</span>
-                            <span class="loteria-badge">Valle</span>
-                            <span class="loteria-badge">Meta</span>
-                        </div>
-                    </div>
-
-                    <!-- Jueves -->
-                    <div class="calendario-card">
-                        <h3>Jueves 📍</h3>
-                        <div class="loteria-badges-container">
-                            <span class="loteria-badge">Bogotá</span>
-                            <span class="loteria-badge">Quindío</span>
-                        </div>
-                    </div>
-
-                    <!-- Viernes -->
-                    <div class="calendario-card">
-                        <h3>Viernes 📍</h3>
-                        <div class="loteria-badges-container">
-                            <span class="loteria-badge">Medellín</span>
-                            <span class="loteria-badge">Risaralda</span>
-                            <span class="loteria-badge">Santander</span>
-                        </div>
-                    </div>
-
-                    <!-- Sábado ✅ AGREGADO -->
-                    <div class="calendario-card">
-                        <h3>Sábado 📍</h3>
-                        <div class="loteria-badges-container">
-                            <span class="loteria-badge">Boyacá</span>
-                            <span class="loteria-badge">Cauca</span>
-                        </div>
-                    </div>
-
-                    <!-- Astros -->
-                    <div class="calendario-card">
-                        <h3>Todos los Días ⭐</h3>
-                        <div class="loteria-badges-container">
-                            <span class="loteria-badge">Astro Luna</span>
-                            <span class="loteria-badge">Astro Sol</span>
-                        </div>
+                <div class="calendario-grid" id="calendarioContainer">
+                    <div style="grid-column: 1/-1; padding: 20px; text-align: center;">
+                        <div class="spinner-small"></div>
+                        <p style="color: var(--text-light);">Cargando calendario...</p>
                     </div>
                 </div>
             </section>
@@ -155,7 +95,7 @@
 
             <!-- BOTÓN DE ACCIÓN -->
             <section class="section-action">
-                <button class="btn-large" id="btnGenerar" onclick="generarDatos()">
+                <button class="btn-large" id="btnGenerar" onclick="iniciarAnalisis()">
                     📊 Iniciar Análisis Completo
                 </button>
                 <div class="status-msg" id="statusMsg"></div>
@@ -190,44 +130,78 @@
     </div>
 
     <script>
-        const apiUrl = '/api/generar-datos';
-
+        // ==================== FUNCIONES UTILITARIAS ====================
         function mostrarMensaje(msg, tipo = 'info') {
             const statusMsg = document.getElementById('statusMsg');
             statusMsg.textContent = msg;
-            statusMsg.style.color = tipo === 'error' ? '#ff6b6b' : '#667eea';
+            statusMsg.style.color = tipo === 'error' ? '#ff6b6b' : tipo === 'success' ? '#51cf66' : '#667eea';
         }
 
-        function generarDatos() {
-            const btn = document.getElementById('btnGenerar');
-            btn.disabled = true;
-            mostrarMensaje('⏳ Procesando...');
+        function mostrarError(seccion, mensaje) {
+            const container = document.getElementById(seccion);
+            container.innerHTML = `<div style="grid-column: 1/-1; padding: 20px; text-align: center; color: #ff6b6b;"><p>⚠️ ${mensaje}</p></div>`;
+        }
 
-            fetch(apiUrl, { method: 'POST' })
+        // ==================== CARGAR CALENDARIO ====================
+        function cargarCalendario() {
+            fetch('/get-calendario')
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
-                        mostrarPredictciones(data.predicciones_diarias);
-                        mostrarUltimosResultados(data.datos_ultimo_sorteo);
-                        mostrarNumerosEspeciales(data.numeros_especiales);
-                        mostrarMensaje('✅ Análisis completado exitosamente', 'success');
+                        renderizarCalendario(data.calendario);
                     } else {
-                        mostrarMensaje('❌ Error: ' + data.message, 'error');
+                        mostrarError('calendarioContainer', 'Error al cargar calendario');
                     }
-                    btn.disabled = false;
                 })
                 .catch(error => {
-                    mostrarMensaje('❌ Error: ' + error.message, 'error');
-                    btn.disabled = false;
+                    mostrarError('calendarioContainer', 'Error al conectar con el servidor');
                 });
         }
 
-        function mostrarPredictciones(predicciones) {
+        function renderizarCalendario(calendario) {
+            const container = document.getElementById('calendarioContainer');
+            container.innerHTML = '';
+
+            const diasNombres = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+            const colores = ['#667eea', '#764ba2', '#ff6b6b', '#ffd43b', '#51cf66', '#20c997', '#748ffc'];
+
+            diasNombres.forEach((dia, idx) => {
+                const loterias = calendario[dia] || [];
+                const card = document.createElement('div');
+                card.className = 'calendario-card';
+                card.style.borderLeftColor = colores[idx];
+                card.innerHTML = `
+                    <h3 style="color: ${colores[idx]}">${dia} 📍</h3>
+                    <div class="loteria-badges-container">
+                        ${loterias.map(l => `<span class="loteria-badge">${l}</span>`).join('')}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // ==================== CARGAR PREDICCIONES ====================
+        function cargarPredicciones() {
+            fetch('/get-predicciones')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        renderizarPredicciones(data.predicciones);
+                    } else {
+                        mostrarError('prediccionesContainer', 'No hay predicciones disponibles');
+                    }
+                })
+                .catch(error => {
+                    mostrarError('prediccionesContainer', 'Error al cargar predicciones');
+                });
+        }
+
+        function renderizarPredicciones(predicciones) {
             const container = document.getElementById('prediccionesContainer');
             container.innerHTML = '';
 
-            if (Object.keys(predicciones).length === 0) {
-                container.innerHTML = '<p style="text-align:center; grid-column: 1/-1;">No hay loterías que jueguen hoy</p>';
+            if (!predicciones || Object.keys(predicciones).length === 0) {
+                container.innerHTML = '<div style="grid-column: 1/-1; padding: 20px; text-align: center; color: var(--text-light);">No hay loterías que jueguen hoy</div>';
                 return;
             }
 
@@ -237,33 +211,37 @@
                 card.innerHTML = `
                     <div class="prediccion-loteria">${loteria}</div>
                     <div class="prediccion-numero">${datos.numero}</div>
-                    ${datos.signo !== 'N/A' ? `<div class="prediccion-signo">♈ ${datos.signo}</div>` : ''}
-                    <div class="prediccion-frecuencia">${datos.frecuencia} veces</div>
+                    ${datos.signo && datos.signo !== 'N/A' ? `<div class="prediccion-signo">♈ ${datos.signo}</div>` : ''}
+                    <div class="prediccion-frecuencia">${datos.frecuencia || 0} veces</div>
                 `;
                 container.appendChild(card);
             });
         }
 
-        function mostrarUltimosResultados(datos) {
-            const container = document.getElementById('sorteosContainer');
-            container.innerHTML = '';
-
-            Object.entries(datos).forEach(([loteria, resultado]) => {
-                const card = document.createElement('div');
-                card.className = 'sorteo-card';
-                card.innerHTML = `
-                    <div class="sorteo-card-num">${resultado.numero}</div>
-                    <div class="sorteo-card-name">${loteria}</div>
-                    ${resultado.signo !== 'N/A' ? `<div class="sorteo-card-signo">♈ ${resultado.signo}</div>` : ''}
-                    <div class="sorteo-card-fecha">${resultado.fecha}</div>
-                `;
-                container.appendChild(card);
-            });
+        // ==================== CARGAR NÚMEROS ESPECIALES ====================
+        function cargarNumerosEspeciales() {
+            fetch('/get-analisis-numeros')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        renderizarNumerosEspeciales(data.analisis);
+                    } else {
+                        mostrarError('numerosEspecialesContainer', 'Error al analizar números especiales');
+                    }
+                })
+                .catch(error => {
+                    mostrarError('numerosEspecialesContainer', 'Error al conectar con el servidor');
+                });
         }
 
-        function mostrarNumerosEspeciales(numeros) {
+        function renderizarNumerosEspeciales(numeros) {
             const container = document.getElementById('numerosEspecialesContainer');
             container.innerHTML = '';
+
+            if (!numeros || Object.keys(numeros).length === 0) {
+                container.innerHTML = '<div style="grid-column: 1/-1; padding: 20px; text-align: center; color: var(--text-light);">Sin datos de números especiales</div>';
+                return;
+            }
 
             Object.entries(numeros).forEach(([numero, info]) => {
                 const card = document.createElement('div');
@@ -271,37 +249,114 @@
                 card.innerHTML = `
                     <div class="numero-especial-header">
                         <div class="numero-especial-numero">${numero}</div>
-                        <div class="numero-especial-prob">${info.apariciones_total}x</div>
+                        <div class="numero-especial-prob">${info.apariciones_total || 0}x</div>
                     </div>
                     
                     <div class="numero-especial-stats">
                         <div class="stat-item">
                             <span class="stat-label">Apariciones</span>
-                            <span class="stat-value">${info.apariciones_total}</span>
+                            <span class="stat-value">${info.apariciones_total || 0}</span>
                         </div>
                         <div class="stat-item">
                             <span class="stat-label">Último Año</span>
-                            <span class="stat-value">${info.apariciones_1ano}</span>
+                            <span class="stat-value">${info.apariciones_1ano || 0}</span>
                         </div>
                     </div>
 
                     <div class="numero-especial-loterias">
                         <strong>🎰 Lotería Favorita:</strong>
-                        <div class="loteria-top">${info.loteria_favorita}</div>
+                        <div class="loteria-top">${info.loteria_favorita || 'No disponible'}</div>
                     </div>
 
                     <div class="numero-especial-intervalo">
-                        <div>📅 Última: ${info.ultima_aparicion}</div>
-                        <div style="margin-top: 5px;">🎯 Próxima: ${info.proxima_prediccion}</div>
+                        <div>📅 Última: ${info.ultima_aparicion || 'N/A'}</div>
+                        <div style="margin-top: 5px;">🎯 Próxima: ${info.proxima_prediccion || 'N/A'}</div>
                     </div>
                 `;
                 container.appendChild(card);
             });
         }
 
-        // Cargar datos automáticamente al entrar
+        // ==================== CARGAR RESULTADOS ====================
+        function cargarResultados() {
+            fetch('/get-results')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        renderizarResultados(data.resultados);
+                    } else {
+                        mostrarError('sorteosContainer', 'Error al cargar resultados');
+                    }
+                })
+                .catch(error => {
+                    mostrarError('sorteosContainer', 'Error al conectar con el servidor');
+                });
+        }
+
+        function renderizarResultados(resultados) {
+            const container = document.getElementById('sorteosContainer');
+            container.innerHTML = '';
+
+            if (!resultados || Object.keys(resultados).length === 0) {
+                container.innerHTML = '<div style="grid-column: 1/-1; padding: 20px; text-align: center; color: var(--text-light);">Sin resultados disponibles</div>';
+                return;
+            }
+
+            Object.entries(resultados).forEach(([loteria, resultado]) => {
+                const card = document.createElement('div');
+                card.className = 'sorteo-card';
+                card.innerHTML = `
+                    <div class="sorteo-card-num">${resultado.numero || 'N/A'}</div>
+                    <div class="sorteo-card-name">${loteria}</div>
+                    ${resultado.signo && resultado.signo !== 'No disponible' ? `<div class="sorteo-card-signo">♈ ${resultado.signo}</div>` : ''}
+                    <div class="sorteo-card-fecha">${resultado.fecha || 'N/A'}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // ==================== INICIAR ANÁLISIS ====================
+        function iniciarAnalisis() {
+            const btn = document.getElementById('btnGenerar');
+            btn.disabled = true;
+            mostrarMensaje('⏳ Iniciando análisis...');
+
+            fetch('/start-analysis', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        mostrarMensaje('✅ Análisis iniciado en segundo plano', 'success');
+                        
+                        // Esperar a que se complete y luego recargar datos
+                        setTimeout(() => {
+                            cargarPredicciones();
+                            cargarNumerosEspeciales();
+                            cargarResultados();
+                            mostrarMensaje('✅ Datos cargados correctamente', 'success');
+                        }, 3000);
+                    } else {
+                        mostrarMensaje('❌ Error: ' + (data.message || 'Error desconocido'), 'error');
+                    }
+                    btn.disabled = false;
+                })
+                .catch(error => {
+                    mostrarMensaje('❌ Error: ' + error.message, 'error');
+                    btn.disabled = false;
+                });
+        }
+
+        // ==================== INICIALIZACIÓN ====================
         document.addEventListener('DOMContentLoaded', function() {
-            generarDatos();
+            mostrarMensaje('⏳ Cargando datos...');
+            
+            cargarCalendario();
+            cargarPredicciones();
+            cargarNumerosEspeciales();
+            cargarResultados();
+            
+            setTimeout(() => {
+                mostrarMensaje('✅ Datos cargados correctamente', 'success');
+            }, 2000);
         });
     </script>
 </body>
