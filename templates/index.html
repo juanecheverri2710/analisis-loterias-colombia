@@ -139,29 +139,35 @@
         const loadingTime = document.getElementById('loadingTime');
 
         // Calendario
-        async function cargarCalendario() {
-            try {
-                const response = await fetch('/get-calendario');
-                const calendario = await response.json();
+       async function cargarCalendario() {
+    try {
+        const response = await fetch('/get-calendario');
+        const calendario = await response.json();
+        
+        const dias_orden = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+        
+        const calendarioDiv = document.getElementById('calendario');
+        calendarioDiv.innerHTML = '';
 
-                const calendarioDiv = document.getElementById('calendario');
-                calendarioDiv.innerHTML = '';
-
-                for (const [dia, loterias] of Object.entries(calendario)) {
-                    const card = document.createElement('div');
-                    card.className = 'calendario-card';
-                    card.innerHTML = `
-                        <h3>${dia}</h3>
-                        <div class="loteria-badges-container">
-                            ${loterias.map(l => `<span class="loteria-badge">${l}</span>`).join('')}
-                        </div>
-                    `;
-                    calendarioDiv.appendChild(card);
-                }
-            } catch (error) {
-                console.error('Error cargando calendario:', error);
+        // Iterar en orden fijo
+        for (const dia of dias_orden) {
+            if (calendario[dia]) {
+                const loterias = calendario[dia];
+                const card = document.createElement('div');
+                card.className = 'calendario-card';
+                card.innerHTML = `
+                    <h3>${dia}</h3>
+                    <div class="loteria-badges-container">
+                        ${loterias.map(l => `<span class="loteria-badge">${l}</span>`).join('')}
+                    </div>
+                `;
+                calendarioDiv.appendChild(card);
             }
         }
+    } catch (error) {
+        console.error('Error cargando calendario:', error);
+    }
+}
 
         // Iniciar análisis
         btnAnalizar.addEventListener('click', async () => {

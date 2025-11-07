@@ -959,20 +959,24 @@ def static_files(filename):
 @app.route("/get-calendario", methods=["GET"])
 def get_calendario():
     """Devuelve el calendario de loterías por día en orden"""
+    from collections import OrderedDict
+    
     dias_nombres = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
     
-    # Crear calendario vacío en orden
-    calendario_ordenado = {}
-    for dia_nombre in dias_nombres:
-        calendario_ordenado[dia_nombre] = []
+    # Crear calendario usando OrderedDict para preservar orden
+    calendario = OrderedDict()
     
-    # Llenar el calendario
+    for dia_nombre in dias_nombres:
+        calendario[dia_nombre] = []
+    
+    # Llenar con las loterías
     for loteria, dias in DIAS_LOTERIA.items():
         for dia in dias:
             dia_nombre = dias_nombres[dia]
-            calendario_ordenado[dia_nombre].append(loteria)
+            calendario[dia_nombre].append(loteria)
     
-    return jsonify(calendario_ordenado)
+    # Convertir a diccionario normal para JSON
+    return jsonify(dict(calendario))
 
 @app.route("/obtener-historico", methods=["POST"])
 def obtener_historico():
