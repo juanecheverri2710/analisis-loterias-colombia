@@ -1,44 +1,16 @@
 {
-  "Boyacá": [
-    {"numero": "5119", "serie": "363 ver secos", "fecha": "2025-11-01"}
-  ],
-  "Cruz Roja": [
-    {"numero": "9110", "serie": "026 ver secos", "fecha": "2025-11-04"}
-  ],
-  "Manizales": [
-    {"numero": "5182", "serie": "049 ver secos", "fecha": "2025-10-29"}
-  ],
-  "Cundinamarca": [
-    {"numero": "2120", "serie": "186 ver secos", "fecha": "2025-11-04"}
-  ],
-  "Tolima": [
-    {"numero": "4620", "serie": "175 ver secos", "fecha": "2025-11-04"}
-  ],
-  "Medellín": [
-    {"numero": "1279", "serie": "260 ver secos", "fecha": "2025-10-31"}
-  ],
-  "Santander": [
-    {"numero": "6728", "serie": "017 ver secos", "fecha": "2025-10-31"}
-  ],
-  "Huila": [
-    {"numero": "1729", "serie": "040 ver secos", "fecha": "2025-11-04"}
-  ],
-  "Risaralda": [
-    {"numero": "4963", "serie": "151 ver secos", "fecha": "2025-10-31"}
-  ],
-  "Bogotá": [
-    {"numero": "4913", "serie": "193 ver secos", "fecha": "2025-10-30"}
-  ],
-  "Meta": [
-    {"numero": "9130", "serie": "010 ver secos", "fecha": "2025-10-29"}
-  ],
-  "Quindío": [
-    {"numero": "4715", "serie": "139 ver secos", "fecha": "2025-10-30"}
-  ],
-  "Valle": [
-    {"numero": "3612", "serie": "249 ver secos", "fecha": "2025-10-29"}
-  ],
-  "Cauca": [
-    {"numero": "9648", "serie": "082 ver secos", "fecha": "2025-11-01"}
-  ]
+  "Boyacá": [{"numero": "5119", "serie": "363", "fecha": "2025-11-01"}, {"numero": "7484", "serie": "315", "fecha": "2025-10-25"}],
+  "Cruz Roja": [{"numero": "9110", "serie": "026", "fecha": "2025-11-04"}, {"numero": "9882", "serie": "227", "fecha": "2025-10-28"}],
+  "Manizales": [{"numero": "5182", "serie": "049", "fecha": "2025-10-29"}, {"numero": "1463", "serie": "006", "fecha": "2025-10-22"}],
+  "Cundinamarca": [{"numero": "2120", "serie": "186", "fecha": "2025-11-04"}, {"numero": "6717", "serie": "078", "fecha": "2025-10-27"}],
+  "Tolima": [{"numero": "4620", "serie": "175", "fecha": "2025-11-04"}, {"numero": "4820", "serie": "123", "fecha": "2025-10-27"}],
+  "Medellín": [{"numero": "1279", "serie": "260", "fecha": "2025-10-31"}, {"numero": "1651", "serie": "036", "fecha": "2025-10-24"}],
+  "Santander": [{"numero": "6728", "serie": "017", "fecha": "2025-10-31"}, {"numero": "7199", "serie": "066", "fecha": "2025-10-24"}],
+  "Huila": [{"numero": "1729", "serie": "040", "fecha": "2025-11-04"}, {"numero": "4622", "serie": "157", "fecha": "2025-10-28"}],
+  "Risaralda": [{"numero": "4963", "serie": "151", "fecha": "2025-10-31"}, {"numero": "4900", "serie": "053", "fecha": "2025-10-24"}],
+  "Bogotá": [{"numero": "4913", "serie": "193", "fecha": "2025-10-30"}, {"numero": "3223", "serie": "097", "fecha": "2025-10-23"}],
+  "Meta": [{"numero": "9130", "serie": "010", "fecha": "2025-10-29"}, {"numero": "7381", "serie": "148", "fecha": "2025-10-22"}],
+  "Quindío": [{"numero": "4715", "serie": "139", "fecha": "2025-10-30"}, {"numero": "2273", "serie": "170", "fecha": "2025-10-23"}],
+  "Valle": [{"numero": "3612", "serie": "249", "fecha": "2025-10-29"}, {"numero": "3967", "serie": "297", "fecha": "2025-10-22"}],
+  "Cauca": [{"numero": "9648", "serie": "082", "fecha": "2025-11-01"}, {"numero": "2997", "serie": "281", "fecha": "2025-10-25"}]
 }
