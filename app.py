@@ -19,7 +19,6 @@ import socket
 import time
 import warnings
 from scipy import stats
-from pytz import timezone  # ✅ PARCHE 1: Agregar timezone
 
 warnings.filterwarnings('ignore')
 
@@ -27,9 +26,6 @@ warnings.filterwarnings('ignore')
 app = Flask(__name__)
 app.config['PREFERRED_URL_SCHEME'] = 'https'
 app.config['TRUST_REMOTE_ADDR'] = True
-
-# ✅ PARCHE 1: Timezone para Colombia
-tz_colombia = timezone('America/Bogota')
 
 # Rutas y variables globales
 ruta_archivo = "resultados_loterias.json"
@@ -530,7 +526,7 @@ def analizar_numeros_especiales_probabilidad():
                 "apariciones_1ano": 0,
                 "apariciones_2anos": 0,
                 "apariciones_3anos": 0,
-                "loterias_donde_cayo": {},  # ✅ CORREGIDO
+                "loterias_donde_cayo": {},
                 "frecuencia_por_loteria": {},
                 "probabilidad": 0,
                 "ultimas_fechas": [],
@@ -564,7 +560,7 @@ def analizar_numeros_especiales_probabilidad():
                                 numero_info["apariciones_3anos"] += 1
 
                 if apariciones_loteria:
-                    numero_info["loterias_donde_cayo"][loteria] = len(apariciones_loteria)  # ✅ CORREGIDO
+                    numero_info["loterias_donde_cayo"][loteria] = len(apariciones_loteria)
                     numero_info["frecuencia_por_loteria"][loteria] = {
                         "veces": len(apariciones_loteria),
                         "ultimas_fechas": sorted(fechas_loteria, reverse=True)[:3]
@@ -622,11 +618,11 @@ def analizar_numeros_especiales_probabilidad():
             print(f"\n🎰 LOTERÍAS DONDE MÁS HA CAÍDO:")
             print("─" * 100)
 
-            sorted_loterias = sorted(numero_info["loterias_donde_cayo"].items(),  # ✅ CORREGIDO
+            sorted_loterias = sorted(numero_info["loterias_donde_cayo"].items(),
                                    key=lambda x: x[1], reverse=True)
 
             for loteria, veces in sorted_loterias[:5]:
-                porcentaje = (veces / apariciones_total) * 100
+                porcentaje = (veces / apariciones_total) * 100 if apariciones_total > 0 else 0
                 barra = "█" * int(porcentaje / 3)
                 print(f" {loteria:20s}: {veces:3d}x ({porcentaje:5.1f}%) {barra}")
 
@@ -657,7 +653,7 @@ def analizar_numeros_especiales_probabilidad():
         import traceback
         traceback.print_exc()
 
-# ✅ PARCHE 2: Corregir generar_predicciones_diarias() con timezone
+# ✅ PARCHE 2 CORREGIDO: generar_predicciones_diarias() sin timezone aware
 def generar_predicciones_diarias():
     """Genera predicciones de números ganadores según el día de hoy con validación de fechas"""
     global predicciones_diarias
@@ -665,8 +661,8 @@ def generar_predicciones_diarias():
         with open(ruta_archivo, 'r', encoding='utf-8') as f:
             datos = json.load(f)
 
-        # ✅ PARCHE 2: Usar timezone de Colombia
-        hoy = datetime.now(tz=tz_colombia)
+        # ✅ CORRECCIÓN: Usar datetime naive sin timezone para evitar conflictos
+        hoy = datetime.now()
         hoy_dia = hoy.weekday()  # 0=Lunes, 6=Domingo
 
         dias_nombres = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
@@ -678,14 +674,16 @@ def generar_predicciones_diarias():
             if loteria in DIAS_LOTERIA and hoy_dia in DIAS_LOTERIA[loteria]:
                 if sorteos:
                     # VALIDAR FECHAS: Filtrar solo sorteos válidos del último año
-                    fecha_limite = hoy - timedelta(days=365)
+                    # ✅ CORRECCIÓN: Usar .date() para comparar solo fechas
+                    fecha_limite = (hoy - timedelta(days=365)).date()
                     sorteos_validos = []
 
                     for sorteo in sorteos:
                         fecha_str = sorteo.get("fecha", "")
                         if fecha_str:
                             fecha_obj = validar_fecha(fecha_str)
-                            if fecha_obj and fecha_obj >= fecha_limite:
+                            # ✅ CORRECCIÓN: Comparar solo dates, no datetimes
+                            if fecha_obj and fecha_obj.date() >= fecha_limite:
                                 sorteos_validos.append(sorteo)
 
                     if sorteos_validos:
