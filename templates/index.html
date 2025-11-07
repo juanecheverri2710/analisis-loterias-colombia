@@ -17,7 +17,7 @@
                 </div>
                 <p class="subtitle">Predicciones basadas en análisis de datos históricos y Machine Learning</p>
             </div>
-        
+        </header>
 
         <!-- 🆕 CONTENEDOR DE PROGRESO EN TIEMPO REAL -->
         <div id="progreso-container" style="display:none; margin: 20px 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
@@ -50,7 +50,6 @@
 
             <p id="estado-analisis" style="font-size: 14px; text-align: center; margin: 10px 0; opacity: 0.9;"></p>
         </div>
-</header>
 
         <!-- Stats -->
         <section class="stats">
@@ -180,20 +179,64 @@
             }
         }
 
-        // Iniciar análisis
+        // Iniciar análisis (MEJORADO CON PROGRESO)
         function iniciarAnalisis() {
-            document.getElementById('resultado').textContent = 'Procesando...';
+            console.log("🔄 Iniciando análisis...");
 
+            // Mostrar contenedor de progreso
+            document.getElementById('progreso-container').style.display = 'block';
+            document.getElementById('barra-progreso').value = 0;
+            document.getElementById('porcentaje-progreso').textContent = '0';
+            document.getElementById('mensaje-progreso').textContent = 'Iniciando...';
+            document.getElementById('estado-analisis').textContent = '';
+            document.getElementById('resultado').textContent = '';
+
+            // Enviar POST a /start-analysis
             fetch(API_BASE + '/start-analysis', { method: 'POST' })
                 .then(res => res.json())
                 .then(data => {
-                    console.log('Análisis iniciado:', data.message);
-                    mostrarProgreso();
+                    console.log("✅ Análisis iniciado:", data.message);
+                    // Iniciar monitoreo de progreso
+                    monitorearProgreso();
                 })
                 .catch(err => {
-                    console.error('Error:', err);
-                    document.getElementById('resultado').textContent = 'Error: ' + err;
+                    console.error("❌ Error iniciando análisis:", err);
+                    document.getElementById('estado-analisis').textContent = '❌ Error: ' + err;
+                    document.getElementById('progreso-container').style.display = 'none';
                 });
+        }
+
+        // Monitorear progreso EN TIEMPO REAL (FUNCIÓN NUEVA)
+        function monitorearProgreso() {
+            const intervaloProgreso = setInterval(() => {
+                fetch(API_BASE + '/get-progreso')
+                    .then(res => res.json())
+                    .then(data => {
+                        // Actualizar barra de progreso
+                        document.getElementById('barra-progreso').value = data.porcentaje;
+                        document.getElementById('porcentaje-progreso').textContent = data.porcentaje;
+                        document.getElementById('mensaje-progreso').textContent = data.mensaje;
+
+                        console.log(`📊 ${data.porcentaje}% - ${data.mensaje}`);
+
+                        // Si se completa
+                        if (data.estado === 'completado') {
+                            clearInterval(intervaloProgreso);
+                            document.getElementById('estado-analisis').textContent = '✅ ¡Completado!';
+                            document.getElementById('resultado').textContent = '✅ Análisis completado';
+
+                            setTimeout(() => {
+                                cargarResultados();
+                                document.getElementById('progreso-container').style.display = 'none';
+                            }, 1500);
+                        } else if (data.estado === 'error') {
+                            clearInterval(intervaloProgreso);
+                            document.getElementById('estado-analisis').textContent = '❌ Error: ' + data.mensaje;
+                            alert("❌ Error: " + data.mensaje);
+                        }
+                    })
+                    .catch(err => console.error("Error consultando progreso:", err));
+            }, 500);
         }
 
         // Mostrar progreso
@@ -272,98 +315,6 @@
             if (btnAnalizar) {
                 btnAnalizar.addEventListener('click', iniciarAnalisis);
             }
-
-
-        // ✨ NUEVAS FUNCIONES: MONITOREO DE PROGRESO EN TIEMPO REAL
-        let analisisActivo = false;
-        let intervaloProgreso = null;
-
-        // Función mejorada: Iniciar análisis con progreso
-        function iniciarAnalisis() {
-            console.log("🔄 Iniciando análisis...");
-
-            // Mostrar contenedor de progreso
-            document.getElementById('progreso-container').style.display = 'block';
-            document.getElementById('barra-progreso').value = 0;
-            document.getElementById('porcentaje-progreso').textContent = '0';
-            document.getElementById('mensaje-progreso').textContent = 'Iniciando...';
-            document.getElementById('estado-analisis').textContent = '';
-            document.getElementById('resultado').textContent = '';
-
-            // Enviar POST a /start-analysis
-            fetch(API_BASE + '/start-analysis', { method: 'POST' })
-                .then(res => res.json())
-                .then(data => {
-                    console.log("✅ Análisis iniciado:", data.message);
-                    analisisActivo = true;
-
-                    // Iniciar monitoreo de progreso
-                    monitorearProgreso();
-                })
-                .catch(err => {
-                    console.error("❌ Error iniciando análisis:", err);
-                    document.getElementById('estado-analisis').textContent = '❌ Error: ' + err;
-                    document.getElementById('progreso-container').style.display = 'none';
-                });
-        }
-
-        // Función nueva: Monitorear progreso en tiempo real
-        function monitorearProgreso() {
-            // Consultar /get-progreso cada 500ms
-            intervaloProgreso = setInterval(() => {
-                fetch(API_BASE + '/get-progreso')
-                    .then(res => res.json())
-                    .then(data => {
-                        // Actualizar barra de progreso
-                        document.getElementById('barra-progreso').value = data.porcentaje;
-                        document.getElementById('porcentaje-progreso').textContent = data.porcentaje;
-                        document.getElementById('mensaje-progreso').textContent = data.mensaje;
-
-                        console.log(`📊 ${data.porcentaje}% - ${data.mensaje}`);
-
-                        // ===== SI SE COMPLETA O ERROR =====
-                        if (data.estado === 'completado') {
-                            // ✅ ÉXITO
-                            clearInterval(intervaloProgreso);
-                            analisisActivo = false;
-
-                            document.getElementById('estado-analisis').textContent = '✅ ¡Análisis completado exitosamente!';
-                            document.getElementById('estado-analisis').style.color = '#4ade80';
-                            document.getElementById('resultado').textContent = '✅ Análisis completado';
-
-                            console.log("✅ Análisis completado");
-
-                            // Esperar 2 segundos y recargar resultados
-                            setTimeout(() => {
-                                cargarResultados();
-                                document.getElementById('progreso-container').style.display = 'none';
-                            }, 2000);
-
-                        } else if (data.estado === 'error') {
-                            // ❌ ERROR
-                            clearInterval(intervaloProgreso);
-                            analisisActivo = false;
-
-                            document.getElementById('estado-analisis').textContent = '❌ Error: ' + data.mensaje;
-                            document.getElementById('estado-analisis').style.color = '#f87171';
-
-                            console.error("❌ Error:", data.mensaje);
-                            alert("❌ Error: " + data.mensaje);
-                        }
-                    })
-                    .catch(err => {
-                        console.error("❌ Error consultando progreso:", err);
-                        // No detener, seguir intentando
-                    });
-            }, 500);  // Consulta cada 500ms
-        }
-
-        // Reemplazar el listener del botón con la nueva función
-        const btnAnalizar = document.getElementById('btnAnalizar');
-        if (btnAnalizar) {
-            btnAnalizar.removeEventListener('click', iniciarAnalisis);
-            btnAnalizar.addEventListener('click', iniciarAnalisis);
-        }
         });
     </script>
 </body>
