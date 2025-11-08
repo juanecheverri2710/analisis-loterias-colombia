@@ -64,22 +64,22 @@ DIAS_LOTERIA = {
     "Santander": [4],
     "Boyacá": [5],
     "Cauca": [5]
-    "Astro Luna": [0, 1, 2, 3, 4, 5, 6],    # Todos los días
-    "Astro Sol": [0, 1, 2, 3, 4, 5, 6],     # Todos los días
-    "Cundinamarca": [0],                     # Lunes
-    "Tolima": [0],                           # Lunes
-    "Cruz Roja": [1],                        # Martes
-    "Huila": [1],                            # Martes
-    "Manizales": [2],                        # Miércoles
-    "Valle": [2],                            # Miércoles
-    "Meta": [2],                             # Miércoles
-    "Bogotá": [3],                           # Jueves
-    "Quindío": [3],                          # Jueves
-    "Medellín": [4],                         # Viernes
-    "Risaralda": [4],                        # Viernes
-    "Santander": [4],                        # Viernes
-    "Boyacá": [5],                           # Sábado
-    "Cauca": [5]                             # Sábado
+    "Astro Luna": [0, 1, 2, 3, 4, 5, 6],  # Todos los días
+    "Astro Sol": [0, 1, 2, 3, 4, 5, 6],  # Todos los días
+    "Cundinamarca": [0],  # Lunes
+    "Tolima": [0],  # Lunes
+    "Cruz Roja": [1],  # Martes
+    "Huila": [1],  # Martes
+    "Manizales": [2],  # Miércoles
+    "Valle": [2],  # Miércoles
+    "Meta": [2],  # Miércoles
+    "Bogotá": [3],  # Jueves
+    "Quindío": [3],  # Jueves
+    "Medellín": [4],  # Viernes
+    "Risaralda": [4],  # Viernes
+    "Santander": [4],  # Viernes
+    "Boyacá": [5],  # Sábado
+    "Cauca": [5]  # Sábado
 }
 
 # Números especiales a analizar
