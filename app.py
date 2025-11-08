@@ -86,23 +86,23 @@ def copiar_json_a_static():
             shutil.copy(ruta_archivo, archivo_json_static)
         except:
             pass
-        shutil.copy(ruta_archivo, archivo_json_static)
 
 def cargar_historico_local():
-def cargar_historial(ruta):
-try:
-        with open(ruta_archivo, "r", encoding="utf-8") as f:
-        with open(ruta, "r", encoding="utf-8") as f:
-return json.load(f)
-except:
-return {}
+    pass
 
-def cargar_cache():
+def cargar_historial(ruta):
     try:
-        with open(ruta_cache, "r", encoding="utf-8") as f:
+        with open(ruta, "r", encoding="utf-8") as f:
             return json.load(f)
     except:
         return {}
+
+def guardar_cache(datos):
+    pass
+
+def cargar_cache():
+    pass
+
 # ==================== SCRAPING DE LOTERÍAS ====================
 
 def guardar_cache(datos):
