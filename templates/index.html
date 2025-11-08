@@ -126,8 +126,8 @@
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">🤖</div>
-                        <h3>Predicciones Basadas en Frecuencia</h3>
-                        <p>Análisis estadístico de los últimos 10 sorteos</p>
+                        <h3>Modelo XGBoost</h3>
+                        <p>Algoritmo de Machine Learning optimizado para predicciones</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">📅</div>
@@ -147,7 +147,7 @@
                     <div class="feature-card">
                         <div class="feature-icon">🚀</div>
                         <h3>Optimizado y Rápido</h3>
-                        <p>Solo consulta datos nuevos, completando en segundos</p>
+                        <p>Modelo liviano sin timeout en servidor</p>
                     </div>
                 </div>
             </section>
@@ -337,7 +337,6 @@
                         <div class="top-loterias">
                             <strong>Top Loterías:</strong> ${topLoterías || 'N/A'}
                         </div>
-                        ${datos.proxima_prediccion ? `<div class="proxima-fecha">Próxima estimada: ${datos.proxima_prediccion}</div>` : ''}
                     `;
                     
                     analisisDiv.appendChild(card);
