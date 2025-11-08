@@ -66,8 +66,6 @@ DIAS_LOTERIA = {
     "Cauca": [5]          # Sábado
 }
 
-}
-
 # Números especiales a analizar
 NUMEROS_ESPECIALES = ["0419", "0116", "2710", "1012", "6888"]
 
