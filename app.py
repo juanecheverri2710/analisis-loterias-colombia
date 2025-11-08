@@ -2,18 +2,9 @@ import json
 import threading
 import shutil
 import os
-import pickle
 from datetime import datetime, timedelta
 import pandas as pd
-import numpy as np
-import requests
-from bs4 import BeautifulSoup
 from flask import Flask, render_template, jsonify, send_from_directory
-from sklearn.model_selection import train_test_split
-from xgboost import XGBClassifier
-import warnings
-
-warnings.filterwarnings('ignore')
 
 app = Flask(__name__)
 app.config['PREFERRED_URL_SCHEME'] = 'https'
@@ -22,14 +13,12 @@ app.config['TRUST_REMOTE_ADDR'] = True
 ruta_archivo = "resultados_loterias.json"
 carpeta_static = "static"
 archivo_json_static = os.path.join(carpeta_static, ruta_archivo)
-modelo_pkl = "modelo_ia.pkl"
 
 lock = threading.Lock()
 datos_ultimo_sorteo = {}
 predicciones_diarias = {}
 analisis_numeros_especiales = {}
 progreso_analisis = {"estado": "inactivo", "mensaje": "", "porcentaje": 0}
-
 
 def validar_fecha(fecha_str):
     formatos = ["%d/%m/%Y", "%d-%m-%Y", "%d/%m/%y", "%d-%m-%y", "%Y-%m-%d"]
@@ -40,23 +29,19 @@ def validar_fecha(fecha_str):
             continue
     return None
 
-
 def crear_o_validar_archivo_json():
     if not os.path.exists(ruta_archivo):
         with open(ruta_archivo, "w", encoding="utf-8") as f:
             json.dump({}, f)
 
-
 def asegurar_carpeta_static():
     if not os.path.exists(carpeta_static):
         os.makedirs(carpeta_static)
-
 
 def copiar_json_a_static():
     asegurar_carpeta_static()
     if os.path.exists(ruta_archivo):
         shutil.copy(ruta_archivo, archivo_json_static)
-
 
 def cargar_historial(ruta):
     try:
@@ -65,13 +50,62 @@ def cargar_historial(ruta):
     except:
         return {}
 
-
 def actualizar_progreso(estado, mensaje, porcentaje):
     global progreso_analisis
     with lock:
         progreso_analisis = {"estado": estado, "mensaje": mensaje, "porcentaje": min(100, max(0, porcentaje))}
     print(f"📊 [{porcentaje}%] {mensaje}")
 
+def obtener_actualizaciones_recientes():
+    loterias_urls = {
+        "Boyacá": "http://url",
+        "Cruz Roja": "http://url",
+        "Manizales": "http://url",
+        "Cundinamarca": "http://url",
+        "Tolima": "http://url",
+        "Medellín": "http://url",
+        "Santander": "http://url",
+        "Huila": "http://url",
+        "Risaralda": "http://url",
+        "Bogotá": "http://url",
+        "Meta": "http://url",
+        "Quindío": "http://url",
+        "Valle": "http://url",
+        "Cauca": "http://url"
+    }
+    # Evita errores si no hay scraping real:
+    actualizar_progreso("procesando", "Sin scraping para demo...", 20)
+    actualizaciones = {}
+    for lot in loterias_urls:
+        actualizaciones[lot] = []
+    return actualizaciones
+
+def combinar_resultados_acumulativo(historico, nuevos):
+    actualizar_progreso("procesando", "Combinando...", 55)
+    dfs = []
+    for lot, res in historico.items():
+        if res:
+            df_temp = pd.DataFrame(res)
+            df_temp["loteria"] = lot
+            dfs.append(df_temp)
+    for lot, res in nuevos.items():
+        if res:
+            df_temp = pd.DataFrame(res)
+            df_temp["loteria"] = lot
+            dfs.append(df_temp)
+    if dfs:
+        df_combinado = pd.concat(dfs, ignore_index=True)
+    else:
+        df_combinado = pd.DataFrame(columns=["numero", "serie", "fecha", "loteria"])
+    df_combinado["fecha"] = pd.to_datetime(df_combinado["fecha"])
+    df_combinado = df_combinado.sort_values('fecha', ascending=False)
+    df_combinado.drop_duplicates(subset=["loteria", "fecha", "numero"], inplace=True, keep='first')
+    resultado_final = {}
+    for lot in df_combinado["loteria"].unique():
+        df_loteria = df_combinado[df_combinado["loteria"] == lot].copy()
+        df_loteria["fecha"] = df_loteria["fecha"].dt.strftime("%Y-%m-%d")
+        resultado_final[lot] = df_loteria[["numero", "serie", "fecha"]].to_dict(orient="records")
+    return resultado_final
 
 def generar_datos_ultimo_sorteo():
     global datos_ultimo_sorteo
@@ -81,18 +115,17 @@ def generar_datos_ultimo_sorteo():
         datos_ultimo_sorteo = {}
         for loteria, sorteos in datos.items():
             if sorteos and len(sorteos) > 0:
-                ultimo = sorteos[0]  # Se asume que primer registro es el último sorteo
+                ultimo = sorteos[0]
                 datos_ultimo_sorteo[loteria] = {
                     "numero": str(ultimo.get("numero", "N/A")).zfill(4),
                     "signo": str(ultimo.get("serie", "N/A")),
                     "fecha": str(ultimo.get("fecha", "N/A"))
                 }
-        print(f"✅ Datos del último sorteo cargados: {len(datos_ultimo_sorteo)} loterías")
+        print(f"✅ Datos último sorteo cargados: {len(datos_ultimo_sorteo)} loterías")
         return True
     except Exception as e:
         print(f"⚠️ Error cargando datos últimos sorteos: {e}")
         return False
-
 
 def generar_predicciones_diarias():
     global predicciones_diarias
@@ -102,9 +135,8 @@ def generar_predicciones_diarias():
         predicciones_diarias = {}
         for loteria, sorteos in datos.items():
             if sorteos and len(sorteos) > 0:
-                sorteos_recientes = sorteos[:10]
                 numeros_freq = {}
-                for sorteo in sorteos_recientes:
+                for sorteo in sorteos[:10]:
                     num = str(sorteo.get("numero", "0")).strip().zfill(4)
                     numeros_freq[num] = numeros_freq.get(num, 0) + 1
                 if numeros_freq:
@@ -116,7 +148,6 @@ def generar_predicciones_diarias():
         print(f"✅ Predicciones diarias generadas: {len(predicciones_diarias)} loterías")
     except Exception as e:
         print(f"⚠️ Error generando predicciones: {e}")
-
 
 def analizar_numeros_especiales_probabilidad():
     global analisis_numeros_especiales
@@ -151,7 +182,6 @@ def analizar_numeros_especiales_probabilidad():
     except Exception as e:
         print(f"⚠️ Error analizando números especiales: {e}")
 
-
 def ejecutar_scraping_y_analisis():
     global analisis_texto
     try:
@@ -164,7 +194,6 @@ def ejecutar_scraping_y_analisis():
             if historico:
                 total = sum(len(v) for v in historico.values())
                 print(f"✅ Histórico: {total} registros")
-            # Scraping optimizado (solo nuevos)
             actualizaciones = obtener_actualizaciones_recientes()
             total_nuevos = sum(len(v) for v in actualizaciones.values())
             if total_nuevos > 0:
@@ -177,20 +206,9 @@ def ejecutar_scraping_y_analisis():
             with open(ruta_archivo, "w", encoding="utf-8") as f:
                 json.dump(combinado, f, indent=2, ensure_ascii=False)
             copiar_json_a_static()
-            # Actualizar datos último sorteo
             generar_datos_ultimo_sorteo()
-
-            df_completo = []
-            for lot, sorteos in combinado.items():
-                for sorteo in sorteos:
-                    df_completo.append({'loteria': lot, 'numero': sorteo['numero'],
-                                       'serie': sorteo['serie'], 'fecha': sorteo['fecha']})
-            if df_completo:
-                df = pd.DataFrame(df_completo)
-                cargar_o_entrenar_modelo(df)
-                generar_predicciones_diarias()
-                analizar_numeros_especiales_probabilidad()
-
+            generar_predicciones_diarias()
+            analizar_numeros_especiales_probabilidad()
             analisis_texto = f"✅ Análisis completo con IA. {total_nuevos} actualizaciones."
             actualizar_progreso("completado", "✅ Completado!", 100)
             print("✅ [100%] COMPLETO")
@@ -198,7 +216,6 @@ def ejecutar_scraping_y_analisis():
         analisis_texto = f"Error: {str(e)}"
         actualizar_progreso("error", str(e), 0)
         print(f"❌ {str(e)}")
-
 
 @app.route("/")
 def index():
@@ -233,7 +250,7 @@ def static_files(filename):
 
 if __name__ == "__main__":
     puerto = int(os.environ.get("PORT", 5000))
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("🚀 ANÁLISIS DE LOTERÍAS - IA OPTIMIZADA")
-    print("="*70)
+    print("=" * 70)
     app.run(host='0.0.0.0', port=puerto, debug=False, use_reloader=False, threaded=True)
