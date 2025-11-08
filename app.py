@@ -63,7 +63,21 @@ DIAS_LOTERIA = {
     "Cauca": [5]
 }
 
+# ⭐ CALENDARIO ORDENADO PARA FRONTEND
+from collections import OrderedDict
+
+calendario = OrderedDict([
+    ('Domingo', []),
+    ('Lunes', ['Cundinamarca', 'Tolima']),
+    ('Martes', ['Cruz Roja', 'Huila']),
+    ('Miércoles', ['Manizales', 'Valle', 'Meta']),
+    ('Jueves', ['Bogotá', 'Quindío']),
+    ('Viernes', ['Medellín', 'Risaralda', 'Santander']),
+    ('Sábado', ['Boyacá', 'Cauca'])
+])
+
 NUMEROS_ESPECIALES = ["0419", "0116", "2710", "1012", "6888"]
+
 
 # ==================== FUNCIONES UTILITARIAS ====================
 
@@ -558,8 +572,6 @@ def analizar_numeros_especiales_probabilidad():
     except Exception as e:
         print(f"❌ Error en análisis de números especiales: {str(e)}")
 
-# ==================== PROCESO PRINCIPAL ====================
-
 def ejecutar_scraping_y_analisis():
     global analisis_texto
     try:
@@ -589,12 +601,17 @@ def ejecutar_scraping_y_analisis():
             analizar_numeros_especiales_probabilidad()
 
         analisis_texto = "✅ Análisis completado exitosamente."
-        actualizar_progreso("completado", "Análisis completado", 100)
-        print("\n✅ ¡Análisis completado!")
+        
+        # ⭐ AGREGAR ESTAS 2 LÍNEAS:
+        actualizar_progreso("completado", "✅ ¡Análisis completado!", 100)
+        print("✅ [100%] Análisis COMPLETO - Estado: completado")
+        
     except Exception as e:
         analisis_texto = f"Error: {str(e)}"
         actualizar_progreso("error", str(e), 0)
         print(f"❌ Error: {str(e)}")
+
+# ==================== PROCESO PRINCIPAL ====================
 
 # ==================== RUTAS FLASK ====================
 
@@ -644,22 +661,21 @@ def static_files(filename):
     """Sirve archivos estáticos"""
     return send_from_directory(carpeta_static, filename)
 
-@app.route("/get-calendario", methods=["GET"])
+@app.route('/get-calendario', methods=['GET'])
 def get_calendario():
-    """Devuelve calendario de loterías"""
-    from collections import OrderedDict
-    dias_nombres = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-    calendario = OrderedDict()
+    """Retorna el calendario ordenado correctamente"""
+    # ⭐ ORDEN CORRECTO: Domingo → Sábado
+    orden_dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+    
+    calendario_ordenado = OrderedDict()
+    for dia in orden_dias:
+        if dia in calendario:
+            calendario_ordenado[dia] = calendario[dia]
+        else:
+            calendario_ordenado[dia] = []
+    
+    return jsonify(calendario_ordenado)
 
-    for dia_nombre in dias_nombres:
-        calendario[dia_nombre] = []
-
-    for loteria, dias in DIAS_LOTERIA.items():
-        for dia in dias:
-            dia_nombre = dias_nombres[dia]
-            calendario[dia_nombre].append(loteria)
-
-    return jsonify(dict(calendario))
 
 @app.route("/obtener-historico", methods=["POST"])
 def obtener_historico():
