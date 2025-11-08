@@ -3,19 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <title>Análisis Loterías Colombianas con IA</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Enlace CSS directo (Correcto para local o producción con archivos estáticos) -->
+    <link rel="stylesheet" href="style.css">
     <script>
-    function obtenerResultados() {
-        fetch('/get-sorteos').then(r=>r.json()).then(datos=>{
-            document.getElementById('resultados').innerText = JSON.stringify(datos, null, 2);
-        });
-        fetch('/get-analisis-numeros').then(r=>r.json()).then(datos=>{
-            document.getElementById('numeros-especiales').innerText = JSON.stringify(datos, null, 2);
-        });
-        fetch('/get-predicciones').then(r=>r.json()).then(datos=>{
-            document.getElementById('predicciones').innerText = JSON.stringify(datos, null, 2);
-        });
-    }
+        function obtenerResultados() {
+            fetch('/get-sorteos')
+                .then(rr => rr.json())
+                .then(datos => {
+                    document.getElementById('resultados').innerText = JSON.stringify(datos, null, 2);
+                });
+            fetch('/get-analisis-numeros')
+                .then(rr => rr.json())
+                .then(datos => {
+                    document.getElementById('numeros-especiales').innerText = JSON.stringify(datos, null, 2);
+                });
+            fetch('/get-predicciones')
+                .then(rr => rr.json())
+                .then(datos => {
+                    document.getElementById('predicciones').innerText = JSON.stringify(datos, null, 2);
+                });
+        }
     </script>
 </head>
 <body>
@@ -23,18 +30,29 @@
     <p>Resultados y predicciones basados en inteligencia artificial y análisis histórico.</p>
     <h2>Calendario de Loterías</h2>
     <ul>
-    {% for loteria in ['Cundinamarca', 'Tolima', 'Cruz Roja', 'Huila', 'Manizales', 'Valle', 'Meta', 'Bogotá', 'Quindío', 'Medellín', 'Risaralda', 'Santander', 'Boyacá', 'Cauca'] %}
-        <li>{{ loteria }}</li>
-    {% endfor %}
+        <li>Cundinamarca</li>
+        <li>Tolima</li>
+        <li>Cruz Roja</li>
+        <li>Huila</li>
+        <li>Manizales</li>
+        <li>Valle</li>
+        <li>Meta</li>
+        <li>Bogotá</li>
+        <li>Quindío</li>
+        <li>Medellín</li>
+        <li>Risaralda</li>
+        <li>Santander</li>
+        <li>Boyacá</li>
+        <li>Cauca</li>
     </ul>
     <div class="container">
         <button onclick="obtenerResultados()">Mostrar Resultados y Predicciones</button>
-        <h2>Resultados</h2>
-        <pre id="resultados" class="results-box"></pre>
-        <h2>Análisis Números Especiales</h2>
-        <pre id="numeros-especiales" class="results-box"></pre>
-        <h2>Predicciones para Hoy</h2>
-        <pre id="predicciones" class="results-box"></pre>
     </div>
+    <h2>Resultados</h2>
+    <pre id="resultados" class="results-box">{}</pre>
+    <h2>Análisis Números Especiales</h2>
+    <pre id="numeros-especiales" class="results-box">{}</pre>
+    <h2>Predicciones para Hoy</h2>
+    <pre id="predicciones" class="results-box">{}</pre>
 </body>
 </html>
