@@ -22,7 +22,6 @@ from scipy import stats
 
 warnings.filterwarnings('ignore')
 
-# ==================== CONFIGURACIÓN ====================
 app = Flask(__name__)
 app.config['PREFERRED_URL_SCHEME'] = 'https'
 app.config['TRUST_REMOTE_ADDR'] = True
@@ -41,22 +40,22 @@ modelo_ia = None
 # 📅 CALENDARIO ACTUALIZADO DE LOTERÍAS
 # 0=Lunes, 1=Martes, 2=Miércoles, 3=Jueves, 4=Viernes, 5=Sábado, 6=Domingo
 DIAS_LOTERIA = {
-    "Astro Luna": [0, 1, 2, 3, 4, 5, 6],    # Todos los días
-    "Astro Sol": [0, 1, 2, 3, 4, 5, 6],     # Todos los días
-    "Cundinamarca": [0],                     # Lunes
-    "Tolima": [0],                           # Lunes
-    "Cruz Roja": [1],                        # Martes
-    "Huila": [1],                            # Martes
-    "Manizales": [2],                        # Miércoles
-    "Valle": [2],                            # Miércoles
-    "Meta": [2],                             # Miércoles
-    "Bogotá": [3],                           # Jueves
-    "Quindío": [3],                          # Jueves
-    "Medellín": [4],                         # Viernes
-    "Risaralda": [4],                        # Viernes
-    "Santander": [4],                        # Viernes
-    "Boyacá": [5],                           # Sábado
-    "Cauca": [5]                             # Sábado
+    "Astro Luna": [0, 1, 2, 3, 4, 5, 6], # Todos los días
+    "Astro Sol": [0, 1, 2, 3, 4, 5, 6], # Todos los días
+    "Cundinamarca": [0], # Lunes
+    "Tolima": [0], # Lunes
+    "Cruz Roja": [1], # Martes
+    "Huila": [1], # Martes
+    "Manizales": [2], # Miércoles
+    "Valle": [2], # Miércoles
+    "Meta": [2], # Miércoles
+    "Bogotá": [3], # Jueves
+    "Quindío": [3], # Jueves
+    "Medellín": [4], # Viernes
+    "Risaralda": [4], # Viernes
+    "Santander": [4], # Viernes
+    "Boyacá": [5], # Sábado
+    "Cauca": [5] # Sábado
 }
 
 # Números especiales a analizar
@@ -1223,29 +1222,23 @@ def get_estado_historico():
 if __name__ == "__main__":
     puerto = 5000
     hostname = socket.gethostname()
-    
     try:
         local_ip = socket.gethostbyname(hostname)
     except:
         local_ip = "127.0.0.1"
-
     print("\n" + "="*70)
     print("🚀 SERVIDOR FLASK - ANÁLISIS DE LOTERÍAS COLOMBIA")
     print("="*70)
-    
     print("\n📅 CALENDARIO DE LOTERÍAS:")
     print("─" * 70)
     dias_nombres = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
     for idx, dia_nombre in enumerate(dias_nombres):
         loterias_hoy = [lot for lot, dias in DIAS_LOTERIA.items() if idx in dias]
-        print(f"  {dia_nombre:12s}: {', '.join(loterias_hoy)}")
-    
+        print(f" {dia_nombre:12s}: {', '.join(loterias_hoy)}")
     print("\n✅ Ejecutando en HTTP")
     print(f"📍 Local: http://localhost:{puerto}")
     print(f"📱 Red: http://{local_ip}:{puerto}")
     print("\n🌐 PARA NGROK (NUEVA TERMINAL):")
-    print("   ngrok http 5000")
+    print(" ngrok http 5000")
     print("\n" + "="*70 + "\n")
-
     app.run(host='0.0.0.0', port=puerto, debug=True, use_reloader=False)
-
