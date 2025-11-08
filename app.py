@@ -135,7 +135,6 @@ def actualizar_progreso(estado, mensaje, porcentaje):
 def obtener_solo_ultimo_resultado(nombre, url, fecha_limite):
     """
     ⚡ OPTIMIZADO: Obtiene SOLO el último resultado si es posterior a fecha_limite.
-    10x más rápido que obtener 5 años de datos.
     """
     try:
         response = SESSION.get(url, timeout=10, verify=True)
@@ -150,8 +149,7 @@ def obtener_solo_ultimo_resultado(nombre, url, fecha_limite):
         for tabla in tablas:
             encabezados = [th.text.strip() for th in tabla.find_all("th")]
             if "# Sorteo" in encabezados and "Fecha" in encabezados and "Resultado" in encabezados:
-                # ⭐ SOLO tomar la PRIMERA FILA (último resultado)
-                filas = tabla.find_all("tr")[1:2]  # Solo primera fila de datos
+                filas = tabla.find_all("tr")[1:2]
                 
                 if filas:
                     celdas = filas[0].find_all("td")
@@ -159,7 +157,6 @@ def obtener_solo_ultimo_resultado(nombre, url, fecha_limite):
                         fecha_texto = celdas[1].text.strip()
                         fecha = validar_fecha(fecha_texto)
                         
-                        # ⭐ Verificar si es NUEVO
                         if fecha and fecha > fecha_limite:
                             numero = celdas[2].text.strip()
                             serie = "No disponible"
@@ -171,14 +168,14 @@ def obtener_solo_ultimo_resultado(nombre, url, fecha_limite):
                             
                             numero_limpio = str(int(numero.lstrip('0') or '0')).zfill(4)
                             
-                            print(f"✅ {nombre}: Nuevo resultado {numero_limpio} ({fecha.strftime('%Y-%m-%d')})")
+                            print(f"✅ {nombre}: Nuevo {numero_limpio} ({fecha.strftime('%Y-%m-%d')})")
                             return {
                                 "numero": numero_limpio,
                                 "serie": serie,
                                 "fecha": fecha.strftime("%Y-%m-%d")
                             }
                         else:
-                            print(f"ℹ️ {nombre}: Sin actualizaciones (último: {fecha.strftime('%Y-%m-%d') if fecha else 'N/A'})")
+                            print(f"ℹ️ {nombre}: Sin actualizaciones")
                             return None
                 
         print(f"⚠️ {nombre}: Tabla no encontrada")
@@ -190,10 +187,7 @@ def obtener_solo_ultimo_resultado(nombre, url, fecha_limite):
 
 
 def obtener_actualizaciones_recientes():
-    """
-    ⚡ OPTIMIZADO: Obtiene SOLO los resultados nuevos (posteriores a los que ya tenemos).
-    MUCHO más rápido que obtener 5 años completos.
-    """
+    """⚡ OPTIMIZADO: Obtiene SOLO los resultados nuevos"""
     loterias_urls = {
         "Boyacá": "https://resultadodelaloteria.com/colombia/loteria-de-boyaca",
         "Cruz Roja": "https://resultadodelaloteria.com/colombia/loteria-de-la-cruz-roja",
@@ -211,27 +205,23 @@ def obtener_actualizaciones_recientes():
         "Cauca": "https://resultadodelaloteria.com/colombia/loteria-del-cauca"
     }
     
-    print("\n📅 Verificando actualizaciones recientes...")
+    print("\n📅 Verificando actualizaciones...")
     actualizar_progreso("procesando", "Verificando actualizaciones...", 10)
     
-    # ⭐ Cargar fechas más recientes del JSON
     historico = cargar_historial(ruta_archivo)
     fechas_limite = {}
     
     for loteria, sorteos in historico.items():
         if sorteos and len(sorteos) > 0:
-            # Obtener la fecha más reciente
             fecha_str = sorteos[0].get("fecha", "")
             fecha_obj = validar_fecha(fecha_str)
             if fecha_obj:
                 fechas_limite[loteria] = fecha_obj
-                print(f"  {loteria}: Última fecha {fecha_obj.strftime('%Y-%m-%d')}")
             else:
                 fechas_limite[loteria] = datetime.now() - timedelta(days=30)
         else:
             fechas_limite[loteria] = datetime.now() - timedelta(days=30)
     
-    # ⭐ Buscar SOLO nuevos resultados (EN PARALELO)
     actualizaciones = {}
     tiempo_inicio = time.time()
     contador = 0
@@ -249,13 +239,13 @@ def obtener_actualizaciones_recientes():
                 for nombre, url in loterias_urls.items()
             }
             
-            for futuro in as_completed(futuros, timeout=60):  # Timeout más corto
+            for futuro in as_completed(futuros, timeout=60):
                 nombre = futuros[futuro]
                 contador += 1
                 try:
                     resultado = futuro.result(timeout=3)
                     if resultado:
-                        actualizaciones[nombre] = [resultado]  # Lista con 1 elemento
+                        actualizaciones[nombre] = [resultado]
                     else:
                         actualizaciones[nombre] = []
                     
@@ -272,125 +262,8 @@ def obtener_actualizaciones_recientes():
     tiempo_total = time.time() - tiempo_inicio
     total_nuevos = sum(len(v) for v in actualizaciones.values())
     
-    print(f"\n⏱️ Verificación completada en {tiempo_total:.2f} segundos")
-    print(f"📊 Resultados nuevos encontrados: {total_nuevos}")
-    
+    print(f"\n⏱️ Completado en {tiempo_total:.2f}s - {total_nuevos} nuevos")
     return actualizaciones
-
-
-def obtener_historico_completo_5anos():
-    """Función original para descargar todo el histórico (5 años)"""
-    print("\n" + "="*100)
-    print("📅 CONSULTANDO HISTÓRICO COMPLETO - ÚLTIMOS 5 AÑOS")
-    print("="*100)
-    
-    # Reutiliza la función original de scraping
-    # (Esta función se usa solo cuando se presiona el botón "Descargar Histórico")
-    from datetime import timedelta
-    
-    loterias_urls = {
-        "Boyacá": "https://resultadodelaloteria.com/colombia/loteria-de-boyaca",
-        "Cruz Roja": "https://resultadodelaloteria.com/colombia/loteria-de-la-cruz-roja",
-        "Manizales": "https://resultadodelaloteria.com/colombia/loteria-de-manizales",
-        "Cundinamarca": "https://resultadodelaloteria.com/colombia/loteria-de-cundinamarca",
-        "Tolima": "https://resultadodelaloteria.com/colombia/loteria-del-tolima",
-        "Medellín": "https://resultadodelaloteria.com/colombia/loteria-de-medellin",
-        "Santander": "https://resultadodelaloteria.com/colombia/loteria-de-santander",
-        "Huila": "https://resultadodelaloteria.com/colombia/loteria-del-huila",
-        "Risaralda": "https://resultadodelaloteria.com/colombia/loteria-de-risaralda",
-        "Bogotá": "https://resultadodelaloteria.com/colombia/loteria-de-bogota",
-        "Meta": "https://resultadodelaloteria.com/colombia/loteria-del-meta",
-        "Quindío": "https://resultadodelaloteria.com/colombia/loteria-del-quindio",
-        "Valle": "https://resultadodelaloteria.com/colombia/loteria-del-valle",
-        "Cauca": "https://resultadodelaloteria.com/colombia/loteria-del-cauca"
-    }
-    
-    historico_completo = {}
-    total_loterias = len(loterias_urls)
-    contador = 0
-    fecha_limite = datetime.now() - timedelta(days=1825)
-
-    actualizar_progreso("descargando_historico", "Iniciando descarga histórica...", 15)
-
-    for nombre, url in loterias_urls.items():
-        contador += 1
-        try:
-            response = SESSION.get(url, timeout=15, verify=True)
-            
-            if response.status_code == 200:
-                soup = BeautifulSoup(response.text, "html.parser")
-                tablas = soup.find_all("table")
-                resultados = []
-                
-                for tabla in tablas:
-                    encabezados = [th.text.strip() for th in tabla.find_all("th")]
-                    if "# Sorteo" in encabezados and "Fecha" in encabezados and "Resultado" in encabezados:
-                        filas = tabla.find_all("tr")[1:]
-                        
-                        for fila in filas:
-                            try:
-                                celdas = fila.find_all("td")
-                                if len(celdas) >= 3:
-                                    fecha_texto = celdas[1].text.strip()
-                                    fecha = validar_fecha(fecha_texto)
-
-                                    if fecha is None or fecha < fecha_limite:
-                                        continue
-
-                                    numero = celdas[2].text.strip()
-                                    serie = "No disponible"
-
-                                    if "serie" in numero.lower():
-                                        partes = numero.lower().split("serie")
-                                        numero = partes[0].strip()
-                                        serie = partes[1].strip()
-
-                                    numero_limpio = str(int(numero.lstrip('0') or '0')).zfill(4)
-
-                                    resultados.append({
-                                        "numero": numero_limpio,
-                                        "serie": serie,
-                                        "fecha": fecha.strftime("%Y-%m-%d")
-                                    })
-                            except Exception:
-                                continue
-                        break
-                
-                historico_completo[nombre] = sorted(resultados, key=lambda x: x["fecha"], reverse=True)
-                porcentaje = 15 + int((contador / total_loterias) * 50)
-                actualizar_progreso("descargando_historico", f"✅ {nombre}: {len(resultados)}", porcentaje)
-                print(f" ✅ {nombre}: {len(resultados)} registros")
-            else:
-                historico_completo[nombre] = []
-                print(f" ❌ {nombre}: Error HTTP {response.status_code}")
-                
-        except Exception as e:
-            print(f" ❌ {nombre}: Error - {str(e)}")
-            historico_completo[nombre] = []
-
-    print("\n" + "="*100)
-    print("✅ DESCARGA HISTÓRICA COMPLETADA")
-    print("="*100)
-
-    total_registros = sum(len(registros) for registros in historico_completo.values())
-    print(f"Total registros: {total_registros}")
-
-    return historico_completo
-
-
-def guardar_historico_json(historico):
-    """Guarda el histórico en el archivo JSON"""
-    try:
-        print("\n💾 Guardando histórico en archivo JSON...")
-        actualizar_progreso("guardando", "Guardando datos...", 80)
-        with open(ruta_archivo, "w", encoding="utf-8") as f:
-            json.dump(historico, f, indent=2, ensure_ascii=False)
-        copiar_json_a_static()
-        print("✅ Histórico guardado exitosamente")
-        return True
-    except Exception as e:
-        print(f"❌ Error guardando histórico: {str(e)}")
-        return False
 
 # ==================== PROCESAMIENTO DE DATOS ====================
 
@@ -433,7 +306,7 @@ def generar_datos_ultimo_sorteo():
     """Genera datos del último sorteo de cada lotería"""
     global datos_ultimo_sorteo
     try:
-        actualizar_progreso("analizando", "Generando datos de últimos sorteos...", 85)
+        actualizar_progreso("analizando", "Generando datos...", 85)
         with open(ruta_archivo, 'r', encoding='utf-8') as f:
             datos = json.load(f)
 
@@ -447,14 +320,14 @@ def generar_datos_ultimo_sorteo():
                     "fecha": str(ultimo.get("fecha", "N/A"))
                 }
 
-        print(f"✅ Datos del último sorteo cargados: {len(datos_ultimo_sorteo)} loterías")
+        print(f"✅ Últimos sorteos: {len(datos_ultimo_sorteo)} loterías")
         return True
     except Exception as e:
-        print(f"⚠️ Error cargando datos: {str(e)}")
+        print(f"⚠️ Error: {str(e)}")
         return False
 
 def generar_predicciones_diarias():
-    """Genera predicciones de números ganadores según el día de hoy"""
+    """Genera predicciones según el día de hoy"""
     global predicciones_diarias
     try:
         with open(ruta_archivo, 'r', encoding='utf-8') as f:
@@ -462,7 +335,6 @@ def generar_predicciones_diarias():
 
         hoy = datetime.now()
         hoy_dia = hoy.weekday()
-        dias_nombres = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
 
         predicciones_diarias = {}
 
@@ -478,57 +350,40 @@ def generar_predicciones_diarias():
 
                     if numeros_freq:
                         top_numeros = sorted(numeros_freq.items(), key=lambda x: x[1], reverse=True)
-                        numero_predicho = top_numeros[0][0]
-
                         predicciones_diarias[loteria] = {
-                            "numero": numero_predicho,
+                            "numero": top_numeros[0][0],
                             "frecuencia": top_numeros[0][1]
                         }
-                        print(f"🎯 {loteria}: {numero_predicho} - {top_numeros[0][1]} apariciones")
 
-        print(f"✅ Predicciones generadas para HOY ({dias_nombres[hoy_dia]})")
-        print(f" Loterías que juegan hoy: {len(predicciones_diarias)}")
+        print(f"✅ Predicciones: {len(predicciones_diarias)} loterías")
     except Exception as e:
-        print(f"⚠️ Error generando predicciones: {str(e)}")
+        print(f"⚠️ Error: {str(e)}")
 
 def analizar_numeros_especiales_probabilidad():
-    """Análisis detallado de probabilidad para números especiales"""
+    """Análisis de números especiales"""
     global analisis_numeros_especiales
     try:
-        actualizar_progreso("analizando", "Analizando números especiales...", 90)
+        actualizar_progreso("analizando", "Analizando números...", 90)
         with open(ruta_archivo, 'r', encoding='utf-8') as f:
             datos = json.load(f)
 
         hoy = datetime.now()
         fecha_limite_1ano = hoy - timedelta(days=365)
-        fecha_limite_2anos = hoy - timedelta(days=730)
-        fecha_limite_3anos = hoy - timedelta(days=1095)
 
         analisis_numeros_especiales = {}
-
-        print("\n" + "="*100)
-        print("🎯 ANÁLISIS DE PROBABILIDAD - NÚMEROS ESPECIALES")
-        print("="*100)
 
         for numero_especial in NUMEROS_ESPECIALES:
             numero_info = {
                 "numero": numero_especial,
                 "apariciones_total": 0,
                 "apariciones_1ano": 0,
-                "apariciones_2anos": 0,
-                "apariciones_3anos": 0,
                 "loterrias_donde_cayo": {},
-                "frecuencia_por_loteria": {},
                 "probabilidad": 0,
                 "ultimas_fechas": [],
-                "dias_entre_apariciones": [],
                 "proxima_prediccion": ""
             }
 
             for loteria, sorteos in datos.items():
-                apariciones_loteria = []
-                fechas_loteria = []
-
                 for sorteo in sorteos:
                     numero_sorteo = str(sorteo.get("numero", "0")).strip().zfill(4)
                     numero_check = str(int(numero_especial.lstrip('0') or '0')).zfill(4)
@@ -539,126 +394,62 @@ def analizar_numeros_especiales_probabilidad():
 
                         if fecha_obj:
                             numero_info["apariciones_total"] += 1
-                            apariciones_loteria.append(fecha_obj)
-                            fechas_loteria.append(fecha_str)
-
                             if fecha_obj >= fecha_limite_1ano:
                                 numero_info["apariciones_1ano"] += 1
-                            if fecha_obj >= fecha_limite_2anos:
-                                numero_info["apariciones_2anos"] += 1
-                            if fecha_obj >= fecha_limite_3anos:
-                                numero_info["apariciones_3anos"] += 1
+                            
+                            numero_info["loterrias_donde_cayo"][loteria] = \
+                                numero_info["loterrias_donde_cayo"].get(loteria, 0) + 1
 
-                if apariciones_loteria:
-                    numero_info["loterrias_donde_cayo"][loteria] = len(apariciones_loteria)
-                    numero_info["frecuencia_por_loteria"][loteria] = {
-                        "veces": len(apariciones_loteria),
-                        "ultimas_fechas": sorted(fechas_loteria, reverse=True)[:3]
-                    }
-
-            apariciones_total = numero_info["apariciones_total"]
-
-            if apariciones_total > 0:
-                frecuencia_anual = (apariciones_total / 5)
-                numero_info["probabilidad"] = min(100, (frecuencia_anual / 16) * 100)
-
-            todas_fechas = []
-            for loteria, sorteos in datos.items():
-                for sorteo in sorteos:
-                    numero_sorteo = str(sorteo.get("numero", "0")).strip().zfill(4)
-                    numero_check = str(int(numero_especial.lstrip('0') or '0')).zfill(4)
-
-                    if numero_sorteo == numero_check:
-                        fecha_str = sorteo.get("fecha", "")
-                        fecha_obj = validar_fecha(fecha_str)
-                        if fecha_obj:
-                            todas_fechas.append((fecha_obj, loteria))
-
-            todas_fechas.sort(reverse=True)
-            numero_info["ultimas_fechas"] = [(f.strftime("%Y-%m-%d"), l) for f, l in todas_fechas[:5]]
-
-            if len(todas_fechas) > 1:
-                dias_lista = []
-                for i in range(len(todas_fechas) - 1):
-                    dias = (todas_fechas[i][0] - todas_fechas[i+1][0]).days
-                    if dias > 0:
-                        dias_lista.append(dias)
-
-                if dias_lista:
-                    promedio_dias = int(np.mean(dias_lista))
-                    numero_info["dias_entre_apariciones"] = {
-                        "promedio": promedio_dias,
-                        "minimo": int(np.min(dias_lista)),
-                        "maximo": int(np.max(dias_lista))
-                    }
-
-                    ultima_fecha = todas_fechas[0][0]
-                    proxima_fecha_estimada = ultima_fecha + timedelta(days=promedio_dias)
-                    numero_info["proxima_prediccion"] = proxima_fecha_estimada.strftime("%Y-%m-%d")
+            if numero_info["apariciones_total"] > 0:
+                numero_info["probabilidad"] = min(100, (numero_info["apariciones_total"] / 5 / 16) * 100)
 
             analisis_numeros_especiales[numero_especial] = numero_info
 
-        print("✅ ANÁLISIS COMPLETADO")
+        print("✅ Análisis completado")
     except Exception as e:
-        print(f"❌ Error en análisis de números especiales: {str(e)}")
+        print(f"❌ Error: {str(e)}")
 
 def ejecutar_scraping_y_analisis():
-    """
-    ⚡ VERSIÓN OPTIMIZADA: Solo busca actualizaciones recientes.
-    """
+    """⚡ VERSIÓN OPTIMIZADA"""
     global analisis_texto
     try:
-        print("\n🔄 Iniciando análisis optimizado...")
+        print("\n🔄 Iniciando...")
         crear_o_validar_archivo_json()
         asegurar_carpeta_static()
 
-        actualizar_progreso("procesando", "Cargando datos existentes...", 5)
+        actualizar_progreso("procesando", "Cargando...", 5)
 
         with lock:
-            print("📂 Cargando histórico...")
             historico = cargar_historial(ruta_archivo)
             
-            if historico and len(historico) > 0:
-                total_registros = sum(len(v) for v in historico.values())
-                print(f"✅ Histórico: {total_registros} registros")
-            else:
-                print("⚠️ No hay histórico previo")
-                historico = {}
+            if historico:
+                total = sum(len(v) for v in historico.values())
+                print(f"✅ Histórico: {total} registros")
 
-            # ⭐ BUSCAR SOLO ACTUALIZACIONES RECIENTES
-            print("\n🔍 Buscando actualizaciones recientes...")
             actualizaciones = obtener_actualizaciones_recientes()
-            
             total_nuevos = sum(len(v) for v in actualizaciones.values())
             
             if total_nuevos > 0:
-                print(f"\n✅ {total_nuevos} resultados nuevos encontrados")
-                print("🔗 Agregando al histórico...")
-                actualizar_progreso("procesando", f"Agregando {total_nuevos} nuevos...", 60)
-                
-                # Combinar SOLO si hay nuevos
+                print(f"✅ {total_nuevos} nuevos")
+                actualizar_progreso("procesando", f"{total_nuevos} nuevos...", 60)
                 combinado = combinar_resultados_acumulativo(historico, actualizaciones)
             else:
-                print("\n✅ No hay actualizaciones nuevas")
+                print("✅ Sin actualizaciones")
                 actualizar_progreso("procesando", "Sin actualizaciones", 60)
                 combinado = historico
 
-            # Guardar
-            print("\n💾 Guardando...")
             actualizar_progreso("guardando", "Guardando...", 70)
             with open(ruta_archivo, "w", encoding="utf-8") as f:
                 json.dump(combinado, f, indent=2, ensure_ascii=False)
             copiar_json_a_static()
 
-            # Generar predicciones
-            print("\n🎯 Generando análisis...")
             generar_datos_ultimo_sorteo()
             generar_predicciones_diarias()
             analizar_numeros_especiales_probabilidad()
 
-        analisis_texto = f"✅ Análisis completado. {total_nuevos} actualizaciones."
+        analisis_texto = f"✅ Completado. {total_nuevos} actualizaciones."
         actualizar_progreso("completado", "✅ ¡Completado!", 100)
-        print(f"✅ [100%] Análisis COMPLETO - {total_nuevos} nuevos registros")
+        print(f"✅ [100%] COMPLETO - {total_nuevos} nuevos")
         
     except Exception as e:
         analisis_texto = f"Error: {str(e)}"
@@ -673,14 +464,12 @@ def index():
 
 @app.route("/start-analysis", methods=["POST"])
 def start_analysis():
-    """Inicia el análisis en un hilo separado"""
     thread = threading.Thread(target=ejecutar_scraping_y_analisis, daemon=True)
     thread.start()
     return jsonify({"message": "Análisis iniciado."})
 
 @app.route("/get-results", methods=["GET"])
 def get_results():
-    """Devuelve los resultados del análisis"""
     global analisis_texto
     if analisis_texto:
         return jsonify({"result": analisis_texto})
@@ -689,69 +478,31 @@ def get_results():
 
 @app.route("/get-progreso", methods=["GET"])
 def get_progreso():
-    """Devuelve el progreso actual del análisis"""
     with lock:
         return jsonify(progreso_analisis)
 
 @app.route("/get-sorteos", methods=["GET"])
 def get_sorteos():
-    """Devuelve datos del último sorteo"""
     return jsonify(datos_ultimo_sorteo)
 
 @app.route("/get-predicciones", methods=["GET"])
 def get_predicciones():
-    """Devuelve predicciones para HOY"""
     return jsonify(predicciones_diarias)
 
 @app.route("/get-analisis-numeros", methods=["GET"])
 def get_analisis_numeros():
-    """Devuelve análisis de números especiales"""
     return jsonify(analisis_numeros_especiales)
 
 @app.route('/static/<path:filename>')
 def static_files(filename):
-    """Sirve archivos estáticos"""
     return send_from_directory(carpeta_static, filename)
 
 @app.route('/get-calendario', methods=['GET'])
 def get_calendario():
-    """Retorna el calendario ordenado correctamente"""
     return jsonify(calendario)
-
-@app.route("/obtener-historico", methods=["POST"])
-def obtener_historico():
-    """API para obtener histórico completo de 5 años"""
-    try:
-        print("\n🔄 API: Iniciando descarga del histórico...")
-        actualizar_progreso("descargando_historico", "Descargando 5 años de histórico...", 15)
-
-        historico = obtener_historico_completo_5anos()
-
-        if guardar_historico_json(historico):
-            generar_datos_ultimo_sorteo()
-            generar_predicciones_diarias()
-            analizar_numeros_especiales_probabilidad()
-
-            total_registros = sum(len(registros) for registros in historico.values())
-            actualizar_progreso("completado", "Histórico descargado completamente", 100)
-
-            return jsonify({
-                "status": "success",
-                "message": "Histórico descargado y guardado exitosamente",
-                "total_loterias": len(historico),
-                "total_registros": total_registros,
-                "loterias": {k: len(v) for k, v in historico.items()}
-            })
-        else:
-            return jsonify({"status": "error", "message": "Error al guardar histórico"}), 500
-    except Exception as e:
-        print(f"❌ Error en API: {str(e)}")
-        actualizar_progreso("error", str(e), 0)
-        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route("/get-estado-historico", methods=["GET"])
 def get_estado_historico():
-    """API para obtener estado del histórico"""
     try:
         if os.path.exists(ruta_archivo):
             with open(ruta_archivo, 'r', encoding='utf-8') as f:
@@ -785,6 +536,22 @@ def get_estado_historico():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route("/descargar-json", methods=["GET"])
+def descargar_json():
+    """Permite descargar el archivo JSON con todo el histórico"""
+    try:
+        if os.path.exists(ruta_archivo):
+            return send_from_directory(
+                directory=os.getcwd(),
+                path=ruta_archivo,
+                as_attachment=True,
+                download_name=f"resultados_loterias_{datetime.now().strftime('%Y%m%d')}.json"
+            )
+        else:
+            return jsonify({"error": "Archivo no encontrado"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # ==================== INICIO DEL SERVIDOR ====================
 
 if __name__ == "__main__":
@@ -797,26 +564,13 @@ if __name__ == "__main__":
         local_ip = "127.0.0.1"
 
     print("\n" + "="*70)
-    print("🚀 SERVIDOR FLASK - ANÁLISIS DE LOTERÍAS COLOMBIA (OPTIMIZADO)")
+    print("🚀 ANÁLISIS DE LOTERÍAS COLOMBIA - OPTIMIZADO")
     print("="*70)
-    print("\n📅 CALENDARIO DE LOTERÍAS:")
-    print("─" * 70)
-
-    dias_nombres = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-    for idx, dia_nombre in enumerate(dias_nombres):
-        loterias_hoy = [lot for lot, dias in DIAS_LOTERIA.items() if idx in dias]
-        print(f" {dia_nombre:12s}: {', '.join(loterias_hoy)}")
-
-    print("\n⚡ OPTIMIZACIONES ACTIVADAS:")
-    print("  ✅ Scraping inteligente (solo busca actualizaciones nuevas)")
-    print("  ✅ Timeout optimizado (60s)")
-    print("  ✅ SSL verification activo")
-    print("  ✅ Sistema de progreso en tiempo real")
-    print("  ✅ Calendario ordenado (Domingo → Sábado)")
-
-    print("\n✅ Ejecutando en HTTPS (Koyeb)") if os.environ.get("ENVIRONMENT") == "production" else print("\n✅ Ejecutando en HTTP")
-    print(f"📍 Local: http://localhost:{puerto}")
-    print(f"📱 Red: http://{local_ip}:{puerto}")
-    print("\n" + "="*70 + "\n")
+    print("\n⚡ OPTIMIZACIONES:")
+    print("  ✅ Solo busca actualizaciones nuevas")
+    print("  ✅ Timeout 60s")
+    print("  ✅ Calendario ordenado")
+    print(f"\n📍 Puerto: {puerto}")
+    print("="*70 + "\n")
 
     app.run(host='0.0.0.0', port=puerto, debug=False, use_reloader=False, threaded=True)

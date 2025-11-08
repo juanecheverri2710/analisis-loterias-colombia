@@ -50,11 +50,11 @@
             <section class="section-buttons">
                 <button id="btn-iniciar" class="btn btn-primary">
                     <span class="btn-icon">🚀</span>
-                    <span>Iniciar Análisis Completo</span>
+                    <span>Actualizar Resultados</span>
                 </button>
-                <button id="btn-historico" class="btn btn-secondary">
-                    <span class="btn-icon">📥</span>
-                    <span>Descargar Histórico (5 Años)</span>
+                <button id="btn-descargar-json" class="btn btn-secondary">
+                    <span class="btn-icon">💾</span>
+                    <span>Descargar JSON</span>
                 </button>
             </section>
 
@@ -120,14 +120,14 @@
                         <p>Boyacá, Cruz Roja, Manizales, Cundinamarca, Tolima, Medellín, Santander, Huila, Risaralda, Bogotá, Meta, Quindío, Valle, Cauca</p>
                     </div>
                     <div class="feature-card">
-                        <div class="feature-icon">🤖</div>
-                        <h3>Predicciones Inteligentes</h3>
-                        <p>Basadas en análisis de frecuencia del JSON histórico</p>
+                        <div class="feature-icon">⚡</div>
+                        <h3>Actualizaciones Inteligentes</h3>
+                        <p>Solo descarga resultados nuevos, ahorrando tiempo y recursos</p>
                     </div>
                     <div class="feature-card">
-                        <div class="feature-icon">📊</div>
-                        <h3>Modelo XGBoost</h3>
-                        <p>Algoritmo de Machine Learning con balanceo SMOTE</p>
+                        <div class="feature-icon">🤖</div>
+                        <h3>Predicciones Basadas en Frecuencia</h3>
+                        <p>Análisis estadístico de los últimos 10 sorteos</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">📅</div>
@@ -136,18 +136,18 @@
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">✨</div>
-                        <h3>Análisis de Números</h3>
-                        <p>Probabilidad estimada, últimas apariciones e intervalo promedio</p>
+                        <h3>Análisis de Números Especiales</h3>
+                        <p>Probabilidad estimada basada en apariciones históricas</p>
                     </div>
                     <div class="feature-card">
-                        <div class="feature-icon">⚖️</div>
-                        <h3>Balanceo SMOTE</h3>
-                        <p>Para mejorar precisión en predicciones</p>
+                        <div class="feature-icon">💾</div>
+                        <h3>Descarga de Datos</h3>
+                        <p>Exporta todo el histórico en formato JSON</p>
                     </div>
                     <div class="feature-card">
-                        <div class="feature-icon">🎯</div>
-                        <h3>Predicciones Diarias</h3>
-                        <p>Según el día de juego de cada lotería (calendario actualizado)</p>
+                        <div class="feature-icon">🚀</div>
+                        <h3>Optimizado y Rápido</h3>
+                        <p>Solo consulta datos nuevos, completando en segundos</p>
                     </div>
                 </div>
             </section>
@@ -156,7 +156,7 @@
         <!-- FOOTER -->
         <footer class="footer">
             <p>© 2025 Análisis de Loterías Colombia | Datos actualizados automáticamente</p>
-            <p class="footer-note">Este sistema utiliza inteligencia artificial para análisis estadístico. Las predicciones son basadas en datos históricos y no garantizan resultados.</p>
+            <p class="footer-note">Este sistema utiliza análisis estadístico basado en datos históricos. Las predicciones no garantizan resultados.</p>
         </footer>
     </div>
 
@@ -182,7 +182,6 @@
             progressFill.style.width = `${porcentaje}%`;
             progressText.textContent = mensaje;
             
-            // Cambiar color según estado
             progressFill.className = 'progress-bar-fill';
             if (estado === 'completado') {
                 progressFill.classList.add('success');
@@ -198,13 +197,11 @@
                 const response = await fetch('/get-calendario');
                 const calendario = await response.json();
                 
-                // ⭐ ORDEN CORRECTO: DOMINGO PRIMERO
                 const diasOrden = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
                 
                 const calendarioDiv = document.getElementById('calendario');
                 calendarioDiv.innerHTML = '';
                 
-                // Iterar en orden fijo
                 for (const dia of diasOrden) {
                     if (calendario[dia]) {
                         const loterias = calendario[dia];
@@ -363,7 +360,6 @@
                     progreso.estado
                 );
                 
-                // Si completó o hubo error, detener polling y recargar datos
                 if (progreso.estado === 'completado') {
                     clearInterval(intervalId);
                     intervalId = null;
@@ -396,7 +392,6 @@
                 
                 console.log('Análisis iniciado:', data.message);
                 
-                // Iniciar polling cada 1 segundo
                 if (intervalId) clearInterval(intervalId);
                 intervalId = setInterval(verificarProgreso, 1000);
                 
@@ -407,37 +402,10 @@
             }
         });
 
-        document.getElementById('btn-historico').addEventListener('click', async () => {
-            try {
-                if (confirm('¿Descargar 5 años de histórico? Esto puede tardar varios minutos.')) {
-                    mostrarProgreso();
-                    actualizarBarraProgreso(0, 'Descargando histórico...', 'procesando');
-                    
-                    const response = await fetch('/obtener-historico', { method: 'POST' });
-                    const data = await response.json();
-                    
-                    if (data.status === 'success') {
-                        actualizarBarraProgreso(100, `✅ ${data.message}`, 'completado');
-                        setTimeout(() => {
-                            ocultarProgreso();
-                            cargarResultados();
-                            cargarPredicciones();
-                            cargarAnalisisNumeros();
-                        }, 2000);
-                    } else {
-                        actualizarBarraProgreso(0, `❌ ${data.message}`, 'error');
-                        setTimeout(() => ocultarProgreso(), 3000);
-                    }
-                    
-                    // Iniciar polling
-                    if (intervalId) clearInterval(intervalId);
-                    intervalId = setInterval(verificarProgreso, 1000);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                actualizarBarraProgreso(0, 'Error al descargar histórico', 'error');
-                setTimeout(() => ocultarProgreso(), 3000);
-            }
+        // ==================== BOTÓN DESCARGAR JSON ====================
+        
+        document.getElementById('btn-descargar-json').addEventListener('click', () => {
+            window.location.href = '/descargar-json';
         });
 
         // ==================== INICIALIZACIÓN ====================
