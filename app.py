@@ -20,6 +20,7 @@ import socket
 import time
 import warnings
 from scipy import stats
+
 warnings.filterwarnings('ignore')
 
 app = Flask(__name__)
@@ -60,22 +61,19 @@ DIAS_LOTERIA = {
     "Cauca": [5]
 }
 
-# Números especiales a analizar
-NUMEROS_ESPECIALES = ["0419", "0116", "2710", "1012", "6888"]
-
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # ==================== FUNCIONES UTILITARIAS ====================
 
 def validar_fecha(fecha_str):
-"""Valida y convierte string de fecha a objeto datetime"""
-formatos = ["%d/%m/%Y", "%d-%m-%Y", "%d/%m/%y", "%d-%m-%y", "%Y-%m-%d"]
-for fmt in formatos:
-try:
-return datetime.strptime(fecha_str, fmt)
-except ValueError:
-continue
-return None
+    """Valida y convierte string de fecha a objeto datetime"""
+    formatos = ["%d/%m/%Y", "%d-%m-%Y", "%d/%m/%y", "%d-%m-%y", "%Y-%m-%d"]
+    for fmt in formatos:
+        try:
+            return datetime.strptime(fecha_str, fmt)
+        except ValueError:
+            continue
+    return None
 
 def crear_o_validar_archivo_json():
 if not os.path.exists(ruta_archivo):
