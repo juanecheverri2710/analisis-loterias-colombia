@@ -3,23 +3,15 @@ import threading
 import shutil
 import os
 from datetime import datetime, timedelta
-import pandas as pd
 import numpy as np
-import requests
-from bs4 import BeautifulSoup
 from flask import Flask, render_template, request, jsonify, send_from_directory
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, confusion_matrix, precision_recall_curve
+from sklearn.metrics import classification_report
 from sklearn.preprocessing import StandardScaler
-from sklearn.utils.class_weight import compute_class_weight
 from xgboost import XGBClassifier
 from imblearn.over_sampling import SMOTE
 import urllib3
-import socket
-import time
 import warnings
-from scipy import stats
 
 warnings.filterwarnings('ignore')
 
@@ -62,15 +54,6 @@ DIAS_LOTERIA = {
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-def validar_fecha(fecha_str):
-    formatos = ["%d/%m/%Y", "%d-%m-%Y", "%d/%m/%y", "%d-%m-%y", "%Y-%m-%d"]
-    for fmt in formatos:
-        try:
-            return datetime.strptime(fecha_str, fmt)
-        except ValueError:
-            continue
-    return None
-
 def crear_o_validar_archivo_json():
     if not os.path.exists(ruta_archivo):
         with open(ruta_archivo, "w", encoding="utf-8") as f:
@@ -88,13 +71,6 @@ def copiar_json_a_static():
         except:
             pass
 
-def cargar_historial(ruta):
-    try:
-        with open(ruta, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except:
-        return {}
-
 def guardar_cache(datos):
     try:
         with open(ruta_cache, "w", encoding="utf-8") as f:
@@ -111,19 +87,6 @@ def cargar_cache():
         print(f"Error cargando cache: {e}")
     return {}
 
-def obtener_resultados_loteria_tabla(nombre, url):
-    try:
-        respuesta = requests.get(url, verify=False, timeout=10)
-        if respuesta.status_code == 200:
-            soup = BeautifulSoup(respuesta.text, 'html.parser')
-            # Aquí puedes procesar la data de la tabla con BeautifulSoup y extraer datos
-            return True
-        else:
-            return False
-    except Exception as e:
-        print(f"Error al obtener resultados: {e}")
-        return False
-
 def entrenar_modelo_ia(X, y):
     global modelo_ia, scaler
     scaler = StandardScaler()
@@ -131,11 +94,11 @@ def entrenar_modelo_ia(X, y):
     smote = SMOTE(random_state=42)
     X_resampled, y_resampled = smote.fit_resample(X_scaled, y)
     X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2, random_state=42)
-    modelo = XGBClassifier(use_label_encoder=False, eval_metric='logloss')
-    modelo.fit(X_train, y_train)
-    y_pred = modelo.predict(X_test)
+    model = XGBClassifier(use_label_encoder=False, eval_metric='logloss')
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
     print(classification_report(y_test, y_pred))
-    modelo_ia = modelo
+    modelo_ia = model
 
 def predecir_numeros(X_pred):
     if modelo_ia is None or scaler is None:
@@ -149,11 +112,8 @@ def ejecutar_scraping_y_analisis():
         datos = cargar_cache()
         if not datos:
             datos = {}
-
         guardar_cache(datos)
-
         datos_ultimo_sorteo = {loteria: sorteos[0] if sorteos else {} for loteria, sorteos in datos.items()}
-
         analisis_numeros_especiales = {}
         for loteria, sorteos in datos.items():
             conteo = {num: 0 for num in NUMEROS_ESPECIALES}
@@ -163,10 +123,9 @@ def ejecutar_scraping_y_analisis():
                     conteo[numero] += 1
             analisis_numeros_especiales[loteria] = conteo
 
-        # Aquí deberías cargar y preparar X e y para el entrenamiento
-        # Ejemplo ficticio
-        X = np.array([[1, 2, 3], [2, 3, 4]])
-        y = np.array([0, 1])
+        # Ejemplo ficticio para entrenamiento (debes adaptar)
+        X = [[1, 2, 3], [4, 5, 6]]
+        y = [0, 1]
         entrenar_modelo_ia(X, y)
 
         dia_actual = datetime.now().weekday()
@@ -191,8 +150,7 @@ def start_analysis():
         proceso_en_curso = True
         thread.start()
         return jsonify({"message": "Análisis iniciado", "status": "running"})
-    else:
-        return jsonify({"message": "Ya hay un análisis en curso", "status": "already_running"})
+    return jsonify({"message": "Ya hay un análisis en curso", "status": "already_running"})
 
 @app.route("/get-results", methods=["GET"])
 def get_results():
