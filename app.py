@@ -26,11 +26,11 @@ app = Flask(__name__)
 app.config['PREFERRED_URL_SCHEME'] = 'https'
 app.config['TRUST_REMOTE_ADDR'] = True
 
-# Rutas y variables globales
 ruta_archivo = "resultados_loterias.json"
 ruta_cache = "cache_loterias.json"
 carpeta_static = "static"
 archivo_json_static = os.path.join(carpeta_static, ruta_archivo)
+
 analisis_texto = ""
 datos_ultimo_sorteo = {}
 predicciones_diarias = {}
