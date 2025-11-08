@@ -77,7 +77,6 @@ calendario = OrderedDict([
 
 NUMEROS_ESPECIALES = ["0419", "0116", "2710", "1012", "6888"]
 
-
 # ==================== FUNCIONES UTILITARIAS ====================
 
 def validar_fecha(fecha_str):
@@ -109,14 +108,11 @@ def cargar_historial(ruta):
     try:
         with open(ruta, "r", encoding="utf-8") as f:
             return json.load(f)
-    except FileNotFoundError as e:
-        print(f"⚠️ Archivo no encontrado: {e}")
+    except FileNotFoundError:
         return {}
-    except json.JSONDecodeError as e:
-        print(f"⚠️ Error al decodificar JSON: {e}")
+    except json.JSONDecodeError:
         return {}
-    except Exception as e:
-        print(f"⚠️ Error inesperado: {e}")
+    except Exception:
         return {}
 
 def actualizar_progreso(estado, mensaje, porcentaje):
@@ -133,14 +129,11 @@ def actualizar_progreso(estado, mensaje, porcentaje):
 # ==================== SCRAPING OPTIMIZADO ====================
 
 def obtener_solo_ultimo_resultado(nombre, url, fecha_limite):
-    """
-    ⚡ OPTIMIZADO: Obtiene SOLO el último resultado si es posterior a fecha_limite.
-    """
+    """⚡ Obtiene SOLO el último resultado si es posterior a fecha_limite"""
     try:
         response = SESSION.get(url, timeout=10, verify=True)
         
         if response.status_code != 200:
-            print(f"⚠️ {nombre}: Error HTTP {response.status_code}")
             return None
 
         soup = BeautifulSoup(response.text, "html.parser")
@@ -168,26 +161,18 @@ def obtener_solo_ultimo_resultado(nombre, url, fecha_limite):
                             
                             numero_limpio = str(int(numero.lstrip('0') or '0')).zfill(4)
                             
-                            print(f"✅ {nombre}: Nuevo {numero_limpio} ({fecha.strftime('%Y-%m-%d')})")
+                            print(f"✅ {nombre}: {numero_limpio} ({fecha.strftime('%Y-%m-%d')})")
                             return {
                                 "numero": numero_limpio,
                                 "serie": serie,
                                 "fecha": fecha.strftime("%Y-%m-%d")
                             }
-                        else:
-                            print(f"ℹ️ {nombre}: Sin actualizaciones")
-                            return None
-                
-        print(f"⚠️ {nombre}: Tabla no encontrada")
         return None
-        
-    except Exception as e:
-        print(f"❌ {nombre}: Error - {str(e)}")
+    except Exception:
         return None
-
 
 def obtener_actualizaciones_recientes():
-    """⚡ OPTIMIZADO: Obtiene SOLO los resultados nuevos"""
+    """⚡ Obtiene SOLO los resultados nuevos"""
     loterias_urls = {
         "Boyacá": "https://resultadodelaloteria.com/colombia/loteria-de-boyaca",
         "Cruz Roja": "https://resultadodelaloteria.com/colombia/loteria-de-la-cruz-roja",
@@ -206,7 +191,7 @@ def obtener_actualizaciones_recientes():
     }
     
     print("\n📅 Verificando actualizaciones...")
-    actualizar_progreso("procesando", "Verificando actualizaciones...", 10)
+    actualizar_progreso("procesando", "Verificando...", 10)
     
     historico = cargar_historial(ruta_archivo)
     fechas_limite = {}
@@ -215,27 +200,19 @@ def obtener_actualizaciones_recientes():
         if sorteos and len(sorteos) > 0:
             fecha_str = sorteos[0].get("fecha", "")
             fecha_obj = validar_fecha(fecha_str)
-            if fecha_obj:
-                fechas_limite[loteria] = fecha_obj
-            else:
-                fechas_limite[loteria] = datetime.now() - timedelta(days=30)
+            fechas_limite[loteria] = fecha_obj if fecha_obj else datetime.now() - timedelta(days=30)
         else:
             fechas_limite[loteria] = datetime.now() - timedelta(days=30)
     
     actualizaciones = {}
-    tiempo_inicio = time.time()
     contador = 0
-    total_loterias = len(loterias_urls)
+    total = len(loterias_urls)
     
     try:
         with ThreadPoolExecutor(max_workers=5) as executor:
             futuros = {
-                executor.submit(
-                    obtener_solo_ultimo_resultado, 
-                    nombre, 
-                    url, 
-                    fechas_limite.get(nombre, datetime.now() - timedelta(days=7))
-                ): nombre 
+                executor.submit(obtener_solo_ultimo_resultado, nombre, url, 
+                              fechas_limite.get(nombre, datetime.now() - timedelta(days=7))): nombre 
                 for nombre, url in loterias_urls.items()
             }
             
@@ -244,35 +221,25 @@ def obtener_actualizaciones_recientes():
                 contador += 1
                 try:
                     resultado = futuro.result(timeout=3)
-                    if resultado:
-                        actualizaciones[nombre] = [resultado]
-                    else:
-                        actualizaciones[nombre] = []
-                    
-                    porcentaje = 10 + int((contador / total_loterias) * 40)
-                    actualizar_progreso("procesando", f"Verificado {contador}/{total_loterias}", porcentaje)
-                    
-                except Exception as e:
-                    print(f"⚠️ {nombre}: Error - {str(e)}")
+                    actualizaciones[nombre] = [resultado] if resultado else []
+                    porcentaje = 10 + int((contador / total) * 40)
+                    actualizar_progreso("procesando", f"{contador}/{total}", porcentaje)
+                except Exception:
                     actualizaciones[nombre] = []
-                    
     except TimeoutError:
-        print("⚠️ Timeout en algunas loterías")
+        print("⚠️ Timeout")
     
-    tiempo_total = time.time() - tiempo_inicio
     total_nuevos = sum(len(v) for v in actualizaciones.values())
-    
-    print(f"\n⏱️ Completado en {tiempo_total:.2f}s - {total_nuevos} nuevos")
+    print(f"📊 {total_nuevos} nuevos")
     return actualizaciones
 
-# ==================== PROCESAMIENTO DE DATOS ====================
+# ==================== PROCESAMIENTO ====================
 
 def combinar_resultados_acumulativo(historico, nuevos):
-    """Combina datos históricos con nuevos resultados sin duplicados"""
-    actualizar_progreso("procesando", "Combinando datos...", 65)
+    """Combina datos sin duplicados"""
+    actualizar_progreso("procesando", "Combinando...", 65)
 
     dfs = []
-
     for lot, res in historico.items():
         if res:
             df_temp = pd.DataFrame(res)
@@ -302,8 +269,138 @@ def combinar_resultados_acumulativo(historico, nuevos):
 
     return resultado_final
 
+# ==================== ANÁLISIS ESTADÍSTICO ====================
+
+def analizar_patrones(df):
+    """Análisis estadístico completo"""
+    print("\n" + "="*100)
+    print("📊 ANÁLISIS ESTADÍSTICO DETALLADO")
+    print("="*100)
+    
+    print(f"\n📈 Total de sorteos: {len(df)}")
+    print(f"📅 Rango de fechas: {df['fecha'].min()} a {df['fecha'].max()}")
+    
+    print("\n🎰 TOP 20 NÚMEROS MÁS REPETIDOS:")
+    print("─" * 100)
+    top_numeros = df['numero'].value_counts().head(20)
+    for idx, (num, freq) in enumerate(top_numeros.items(), 1):
+        porcentaje = (freq / len(df)) * 100
+        barra = "█" * int(porcentaje * 2)
+        print(f" {idx:2d}. {num}: {freq:3d}x ({porcentaje:4.1f}%) {barra}")
+    
+    print("\n🏆 ANÁLISIS POR LOTERÍA:")
+    print("─" * 100)
+    for loteria in df['loteria'].unique():
+        df_lot = df[df['loteria'] == loteria]
+        print(f"\n{loteria}:")
+        print(f"  Total sorteos: {len(df_lot)}")
+        top_5 = df_lot['numero'].value_counts().head(5)
+        print(f"  Top 5: {', '.join([f'{num}({freq}x)' for num, freq in top_5.items()])}")
+
+def analizar_numeros_especificos(df, numeros):
+    """Análisis profundo de números específicos"""
+    print("\n" + "="*100)
+    print("✨ ANÁLISIS DE NÚMEROS ESPECÍFICOS")
+    print("="*100)
+    
+    for numero in numeros:
+        apariciones = df[df['numero'] == numero.zfill(4)]
+        total = len(apariciones)
+        
+        if total > 0:
+            print(f"\n🎯 Número {numero}:")
+            print(f"  Apariciones totales: {total}")
+            print(f"  Probabilidad: {(total/len(df)*100):.2f}%")
+            print(f"  Loterías donde apareció:")
+            for lot, cant in apariciones['loteria'].value_counts().items():
+                print(f"    • {lot}: {cant}x")
+
+def entrenar_modelo_loteria_mejorado(df):
+    """Entrena modelo XGBoost con SMOTE"""
+    global modelo_ia
+    
+    print("\n" + "="*100)
+    print("🤖 ENTRENAMIENTO DE MODELO IA (XGBoost + SMOTE)")
+    print("="*100)
+    
+    actualizar_progreso("entrenando", "Preparando datos...", 70)
+    
+    df['numero_int'] = df['numero'].astype(int)
+    df['ano'] = pd.to_datetime(df['fecha']).dt.year
+    df['mes'] = pd.to_datetime(df['fecha']).dt.month
+    df['dia'] = pd.to_datetime(df['fecha']).dt.day
+    
+    features = []
+    labels = []
+    
+    for loteria in df['loteria'].unique():
+        df_lot = df[df['loteria'] == loteria].sort_values('fecha')
+        
+        for i in range(5, len(df_lot)):
+            ultimos_5 = df_lot.iloc[i-5:i]['numero_int'].values
+            features.append(list(ultimos_5))
+            labels.append(df_lot.iloc[i]['numero_int'])
+    
+    if len(features) < 100:
+        print("⚠️ Datos insuficientes para entrenar")
+        return None
+    
+    X = np.array(features)
+    y = np.array(labels)
+    
+    print(f"\n📊 Datos preparados: {len(X)} muestras")
+    
+    actualizar_progreso("entrenando", "Aplicando SMOTE...", 75)
+    
+    try:
+        smote = SMOTE(random_state=42, k_neighbors=min(5, len(X)-1))
+        X_balanced, y_balanced = smote.fit_resample(X, y)
+        print(f"✅ SMOTE aplicado: {len(X_balanced)} muestras balanceadas")
+    except Exception as e:
+        print(f"⚠️ Error SMOTE: {e}, continuando sin balanceo")
+        X_balanced, y_balanced = X, y
+    
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_balanced, y_balanced, test_size=0.2, random_state=42
+    )
+    
+    actualizar_progreso("entrenando", "Entrenando XGBoost...", 80)
+    
+    modelo = XGBClassifier(
+        n_estimators=100,
+        max_depth=5,
+        learning_rate=0.1,
+        random_state=42,
+        n_jobs=-1
+    )
+    
+    modelo.fit(X_train, y_train)
+    score = modelo.score(X_test, y_test)
+    
+    print(f"\n✅ Modelo entrenado - Precisión: {score*100:.2f}%")
+    
+    modelo_ia = modelo
+    return modelo
+
+def analizar_con_modelo_mejorado(df):
+    """Prepara datos y entrena modelo"""
+    print("\n🔄 Iniciando análisis con IA...")
+    actualizar_progreso("analizando", "Analizando datos...", 65)
+    
+    analizar_patrones(df)
+    analizar_numeros_especificos(df, NUMEROS_ESPECIALES)
+    
+    modelo = entrenar_modelo_loteria_mejorado(df)
+    
+    if modelo:
+        print("\n✅ Modelo IA entrenado exitosamente")
+    else:
+        print("\n⚠️ No se pudo entrenar el modelo")
+    
+    return modelo
+
 def generar_datos_ultimo_sorteo():
-    """Genera datos del último sorteo de cada lotería"""
+    """Genera datos del último sorteo"""
     global datos_ultimo_sorteo
     try:
         actualizar_progreso("analizando", "Generando datos...", 85)
@@ -319,23 +416,19 @@ def generar_datos_ultimo_sorteo():
                     "signo": str(ultimo.get("serie", "N/A")),
                     "fecha": str(ultimo.get("fecha", "N/A"))
                 }
-
-        print(f"✅ Últimos sorteos: {len(datos_ultimo_sorteo)} loterías")
+        print(f"✅ Últimos sorteos: {len(datos_ultimo_sorteo)}")
         return True
-    except Exception as e:
-        print(f"⚠️ Error: {str(e)}")
+    except Exception:
         return False
 
 def generar_predicciones_diarias():
-    """Genera predicciones según el día de hoy"""
+    """Genera predicciones según el día"""
     global predicciones_diarias
     try:
         with open(ruta_archivo, 'r', encoding='utf-8') as f:
             datos = json.load(f)
 
-        hoy = datetime.now()
-        hoy_dia = hoy.weekday()
-
+        hoy_dia = datetime.now().weekday()
         predicciones_diarias = {}
 
         for loteria, sorteos in datos.items():
@@ -349,15 +442,14 @@ def generar_predicciones_diarias():
                         numeros_freq[num] = numeros_freq.get(num, 0) + 1
 
                     if numeros_freq:
-                        top_numeros = sorted(numeros_freq.items(), key=lambda x: x[1], reverse=True)
+                        top = sorted(numeros_freq.items(), key=lambda x: x[1], reverse=True)
                         predicciones_diarias[loteria] = {
-                            "numero": top_numeros[0][0],
-                            "frecuencia": top_numeros[0][1]
+                            "numero": top[0][0],
+                            "frecuencia": top[0][1]
                         }
-
-        print(f"✅ Predicciones: {len(predicciones_diarias)} loterías")
-    except Exception as e:
-        print(f"⚠️ Error: {str(e)}")
+        print(f"✅ Predicciones: {len(predicciones_diarias)}")
+    except Exception:
+        pass
 
 def analizar_numeros_especiales_probabilidad():
     """Análisis de números especiales"""
@@ -369,7 +461,6 @@ def analizar_numeros_especiales_probabilidad():
 
         hoy = datetime.now()
         fecha_limite_1ano = hoy - timedelta(days=365)
-
         analisis_numeros_especiales = {}
 
         for numero_especial in NUMEROS_ESPECIALES:
@@ -379,7 +470,6 @@ def analizar_numeros_especiales_probabilidad():
                 "apariciones_1ano": 0,
                 "loterrias_donde_cayo": {},
                 "probabilidad": 0,
-                "ultimas_fechas": [],
                 "proxima_prediccion": ""
             }
 
@@ -406,14 +496,14 @@ def analizar_numeros_especiales_probabilidad():
             analisis_numeros_especiales[numero_especial] = numero_info
 
         print("✅ Análisis completado")
-    except Exception as e:
-        print(f"❌ Error: {str(e)}")
+    except Exception:
+        pass
 
 def ejecutar_scraping_y_analisis():
-    """⚡ VERSIÓN OPTIMIZADA"""
+    """⚡ VERSIÓN COMPLETA CON IA"""
     global analisis_texto
     try:
-        print("\n🔄 Iniciando...")
+        print("\n🔄 Iniciando análisis completo con IA...")
         crear_o_validar_archivo_json()
         asegurar_carpeta_static()
 
@@ -426,6 +516,7 @@ def ejecutar_scraping_y_analisis():
                 total = sum(len(v) for v in historico.values())
                 print(f"✅ Histórico: {total} registros")
 
+            # Scraping optimizado
             actualizaciones = obtener_actualizaciones_recientes()
             total_nuevos = sum(len(v) for v in actualizaciones.values())
             
@@ -438,18 +529,36 @@ def ejecutar_scraping_y_analisis():
                 actualizar_progreso("procesando", "Sin actualizaciones", 60)
                 combinado = historico
 
-            actualizar_progreso("guardando", "Guardando...", 70)
+            # Guardar
+            actualizar_progreso("guardando", "Guardando...", 65)
             with open(ruta_archivo, "w", encoding="utf-8") as f:
                 json.dump(combinado, f, indent=2, ensure_ascii=False)
             copiar_json_a_static()
 
+            # ⭐ ANÁLISIS CON IA
+            print("\n🤖 Iniciando análisis con IA...")
+            df_completo = []
+            for lot, sorteos in combinado.items():
+                for sorteo in sorteos:
+                    df_completo.append({
+                        'loteria': lot,
+                        'numero': sorteo['numero'],
+                        'serie': sorteo['serie'],
+                        'fecha': sorteo['fecha']
+                    })
+            
+            if df_completo:
+                df = pd.DataFrame(df_completo)
+                analizar_con_modelo_mejorado(df)
+            
+            # Predicciones simples
             generar_datos_ultimo_sorteo()
             generar_predicciones_diarias()
             analizar_numeros_especiales_probabilidad()
 
-        analisis_texto = f"✅ Completado. {total_nuevos} actualizaciones."
+        analisis_texto = f"✅ Análisis completo con IA. {total_nuevos} actualizaciones."
         actualizar_progreso("completado", "✅ ¡Completado!", 100)
-        print(f"✅ [100%] COMPLETO - {total_nuevos} nuevos")
+        print(f"✅ [100%] COMPLETO CON IA")
         
     except Exception as e:
         analisis_texto = f"Error: {str(e)}"
@@ -501,6 +610,22 @@ def static_files(filename):
 def get_calendario():
     return jsonify(calendario)
 
+@app.route("/descargar-json", methods=["GET"])
+def descargar_json():
+    """Permite descargar el archivo JSON"""
+    try:
+        if os.path.exists(ruta_archivo):
+            return send_from_directory(
+                directory=os.getcwd(),
+                path=ruta_archivo,
+                as_attachment=True,
+                download_name=f"resultados_loterias_{datetime.now().strftime('%Y%m%d')}.json"
+            )
+        else:
+            return jsonify({"error": "Archivo no encontrado"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/get-estado-historico", methods=["GET"])
 def get_estado_historico():
     try:
@@ -532,27 +657,11 @@ def get_estado_historico():
                 "loterias": {k: len(v) for k, v in datos.items()}
             })
         else:
-            return jsonify({"status": "success", "tiene_datos": False, "message": "No hay datos aún"})
+            return jsonify({"status": "success", "tiene_datos": False})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@app.route("/descargar-json", methods=["GET"])
-def descargar_json():
-    """Permite descargar el archivo JSON con todo el histórico"""
-    try:
-        if os.path.exists(ruta_archivo):
-            return send_from_directory(
-                directory=os.getcwd(),
-                path=ruta_archivo,
-                as_attachment=True,
-                download_name=f"resultados_loterias_{datetime.now().strftime('%Y%m%d')}.json"
-            )
-        else:
-            return jsonify({"error": "Archivo no encontrado"}), 404
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# ==================== INICIO DEL SERVIDOR ====================
+# ==================== INICIO ====================
 
 if __name__ == "__main__":
     puerto = int(os.environ.get("PORT", 5000))
@@ -564,13 +673,16 @@ if __name__ == "__main__":
         local_ip = "127.0.0.1"
 
     print("\n" + "="*70)
-    print("🚀 ANÁLISIS DE LOTERÍAS COLOMBIA - OPTIMIZADO")
+    print("🚀 ANÁLISIS DE LOTERÍAS COLOMBIA - CON IA")
     print("="*70)
-    print("\n⚡ OPTIMIZACIONES:")
-    print("  ✅ Solo busca actualizaciones nuevas")
-    print("  ✅ Timeout 60s")
+    print("\n🤖 CARACTERÍSTICAS:")
+    print("  ✅ Scraping optimizado (solo nuevos)")
+    print("  ✅ XGBoost + SMOTE")
+    print("  ✅ Análisis estadístico completo")
     print("  ✅ Calendario ordenado")
+    print("  ✅ Descarga de JSON")
     print(f"\n📍 Puerto: {puerto}")
     print("="*70 + "\n")
 
     app.run(host='0.0.0.0', port=puerto, debug=False, use_reloader=False, threaded=True)
+.
