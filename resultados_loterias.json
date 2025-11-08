@@ -1,56 +1,4 @@
 {
-  "Baloto": [
-    {
-      "numero": "09-14-29-35-40-03 Ver Revancha",
-      "serie": "No disponible",
-      "fecha": "2025-11-05"
-    },
-    {
-      "numero": "05-09-26-28-32-03 Ver Revancha",
-      "serie": "No disponible",
-      "fecha": "2025-11-03"
-    },
-    {
-      "numero": "01-21-24-25-43-14 Ver Revancha",
-      "serie": "No disponible",
-      "fecha": "2025-11-01"
-    },
-    {
-      "numero": "02-14-22-25-29-13 Ver Revancha",
-      "serie": "No disponible",
-      "fecha": "2025-10-29"
-    },
-    {
-      "numero": "03-09-32-35-36-10 Ver Revancha",
-      "serie": "No disponible",
-      "fecha": "2025-10-27"
-    },
-    {
-      "numero": "17-18-21-32-37-14 Ver Revancha",
-      "serie": "No disponible",
-      "fecha": "2025-10-25"
-    },
-    {
-      "numero": "03-05-14-19-26-06 Ver Revancha",
-      "serie": "No disponible",
-      "fecha": "2025-10-22"
-    },
-    {
-      "numero": "09-11-15-23-29-04 Ver Revancha",
-      "serie": "No disponible",
-      "fecha": "2025-10-20"
-    },
-    {
-      "numero": "27-31-33-34-41-05 Ver Revancha",
-      "serie": "No disponible",
-      "fecha": "2025-10-18"
-    },
-    {
-      "numero": "02-21-25-37-43-09 Ver Revancha",
-      "serie": "No disponible",
-      "fecha": "2025-10-15"
-    }
-  ],
   "Cundinamarca": [
     {
       "numero": "2120",
@@ -103,55 +51,55 @@
       "fecha": "2025-09-01"
     }
   ],
-  "Cruz Roja": [
+  "Huila": [
     {
-      "numero": "9110",
-      "serie": "026 ver secos",
+      "numero": "1729",
+      "serie": "040 ver secos",
       "fecha": "2025-11-04"
     },
     {
-      "numero": "9882",
-      "serie": "227 ver secos",
+      "numero": "4622",
+      "serie": "157 ver secos",
       "fecha": "2025-10-28"
     },
     {
-      "numero": "5703",
-      "serie": "093 ver secos",
+      "numero": "0573",
+      "serie": "096 ver secos",
       "fecha": "2025-10-21"
     },
     {
-      "numero": "4636",
-      "serie": "225 ver secos",
+      "numero": "8305",
+      "serie": "141 ver secos",
       "fecha": "2025-10-14"
     },
     {
-      "numero": "9865",
-      "serie": "096 ver secos",
+      "numero": "5963",
+      "serie": "026 ver secos",
       "fecha": "2025-10-07"
     },
     {
-      "numero": "0831",
-      "serie": "124 ver secos",
+      "numero": "7716",
+      "serie": "084 ver secos",
       "fecha": "2025-09-30"
     },
     {
-      "numero": "2769",
-      "serie": "288 ver secos",
+      "numero": "6777",
+      "serie": "092 ver secos",
       "fecha": "2025-09-23"
     },
     {
-      "numero": "0776",
-      "serie": "253 ver secos",
+      "numero": "4477",
+      "serie": "049 ver secos",
       "fecha": "2025-09-16"
     },
     {
-      "numero": "5404",
-      "serie": "205 ver secos",
+      "numero": "6416",
+      "serie": "190 ver secos",
       "fecha": "2025-09-09"
     },
     {
-      "numero": "8658",
-      "serie": "077 ver secos",
+      "numero": "7151",
+      "serie": "033 ver secos",
       "fecha": "2025-09-02"
     }
   ],
@@ -207,55 +155,55 @@
       "fecha": "2025-09-01"
     }
   ],
-  "Huila": [
+  "Cruz Roja": [
     {
-      "numero": "1729",
-      "serie": "040 ver secos",
+      "numero": "9110",
+      "serie": "026 ver secos",
       "fecha": "2025-11-04"
     },
     {
-      "numero": "4622",
-      "serie": "157 ver secos",
+      "numero": "9882",
+      "serie": "227 ver secos",
       "fecha": "2025-10-28"
     },
     {
-      "numero": "0573",
-      "serie": "096 ver secos",
+      "numero": "5703",
+      "serie": "093 ver secos",
       "fecha": "2025-10-21"
     },
     {
-      "numero": "8305",
-      "serie": "141 ver secos",
+      "numero": "4636",
+      "serie": "225 ver secos",
       "fecha": "2025-10-14"
     },
     {
-      "numero": "5963",
-      "serie": "026 ver secos",
+      "numero": "9865",
+      "serie": "096 ver secos",
       "fecha": "2025-10-07"
     },
     {
-      "numero": "7716",
-      "serie": "084 ver secos",
+      "numero": "0831",
+      "serie": "124 ver secos",
       "fecha": "2025-09-30"
     },
     {
-      "numero": "6777",
-      "serie": "092 ver secos",
+      "numero": "2769",
+      "serie": "288 ver secos",
       "fecha": "2025-09-23"
     },
     {
-      "numero": "4477",
-      "serie": "049 ver secos",
+      "numero": "0776",
+      "serie": "253 ver secos",
       "fecha": "2025-09-16"
     },
     {
-      "numero": "6416",
-      "serie": "190 ver secos",
+      "numero": "5404",
+      "serie": "205 ver secos",
       "fecha": "2025-09-09"
     },
     {
-      "numero": "7151",
-      "serie": "033 ver secos",
+      "numero": "8658",
+      "serie": "077 ver secos",
       "fecha": "2025-09-02"
     }
   ],
@@ -363,58 +311,6 @@
       "fecha": "2025-08-30"
     }
   ],
-  "Risaralda": [
-    {
-      "numero": "4963",
-      "serie": "151 ver secos",
-      "fecha": "2025-10-31"
-    },
-    {
-      "numero": "4900",
-      "serie": "053 ver secos",
-      "fecha": "2025-10-24"
-    },
-    {
-      "numero": "8187",
-      "serie": "156 ver secos",
-      "fecha": "2025-10-17"
-    },
-    {
-      "numero": "6785",
-      "serie": "141 ver secos",
-      "fecha": "2025-10-10"
-    },
-    {
-      "numero": "7714",
-      "serie": "224 ver secos",
-      "fecha": "2025-10-03"
-    },
-    {
-      "numero": "1221",
-      "serie": "198 ver secos",
-      "fecha": "2025-09-26"
-    },
-    {
-      "numero": "7350",
-      "serie": "221 ver secos",
-      "fecha": "2025-09-19"
-    },
-    {
-      "numero": "8878",
-      "serie": "038 ver secos",
-      "fecha": "2025-09-12"
-    },
-    {
-      "numero": "4970",
-      "serie": "258 ver secos",
-      "fecha": "2025-09-05"
-    },
-    {
-      "numero": "5858",
-      "serie": "254 ver secos",
-      "fecha": "2025-08-29"
-    }
-  ],
   "Santander": [
     {
       "numero": "6728",
@@ -519,56 +415,56 @@
       "fecha": "2025-08-29"
     }
   ],
-  "Bogotá": [
+  "Risaralda": [
     {
-      "numero": "4913",
-      "serie": "193 ver secos",
-      "fecha": "2025-10-30"
+      "numero": "4963",
+      "serie": "151 ver secos",
+      "fecha": "2025-10-31"
     },
     {
-      "numero": "3223",
-      "serie": "097 ver secos",
-      "fecha": "2025-10-23"
+      "numero": "4900",
+      "serie": "053 ver secos",
+      "fecha": "2025-10-24"
     },
     {
-      "numero": "1601",
-      "serie": "127 ver secos",
-      "fecha": "2025-10-16"
+      "numero": "8187",
+      "serie": "156 ver secos",
+      "fecha": "2025-10-17"
     },
     {
-      "numero": "3084",
-      "serie": "378 ver secos",
-      "fecha": "2025-10-09"
+      "numero": "6785",
+      "serie": "141 ver secos",
+      "fecha": "2025-10-10"
     },
     {
-      "numero": "4734",
-      "serie": "005 ver secos",
-      "fecha": "2025-10-02"
-    },
-    {
-      "numero": "8488",
-      "serie": "217 ver secos",
-      "fecha": "2025-09-25"
-    },
-    {
-      "numero": "9307",
-      "serie": "233 ver secos",
-      "fecha": "2025-09-18"
-    },
-    {
-      "numero": "6747",
+      "numero": "7714",
       "serie": "224 ver secos",
-      "fecha": "2025-09-11"
+      "fecha": "2025-10-03"
     },
     {
-      "numero": "6124",
-      "serie": "297 ver secos",
-      "fecha": "2025-09-04"
+      "numero": "1221",
+      "serie": "198 ver secos",
+      "fecha": "2025-09-26"
     },
     {
-      "numero": "9673",
-      "serie": "407 ver secos",
-      "fecha": "2025-08-28"
+      "numero": "7350",
+      "serie": "221 ver secos",
+      "fecha": "2025-09-19"
+    },
+    {
+      "numero": "8878",
+      "serie": "038 ver secos",
+      "fecha": "2025-09-12"
+    },
+    {
+      "numero": "4970",
+      "serie": "258 ver secos",
+      "fecha": "2025-09-05"
+    },
+    {
+      "numero": "5858",
+      "serie": "254 ver secos",
+      "fecha": "2025-08-29"
     }
   ],
   "Quindío": [
@@ -623,56 +519,56 @@
       "fecha": "2025-08-28"
     }
   ],
-  "Meta": [
+  "Bogotá": [
     {
-      "numero": "9130",
-      "serie": "010 ver secos",
-      "fecha": "2025-10-29"
+      "numero": "4913",
+      "serie": "193 ver secos",
+      "fecha": "2025-10-30"
     },
     {
-      "numero": "7381",
-      "serie": "148 ver secos",
-      "fecha": "2025-10-22"
+      "numero": "3223",
+      "serie": "097 ver secos",
+      "fecha": "2025-10-23"
     },
     {
-      "numero": "8593",
-      "serie": "098 ver secos",
-      "fecha": "2025-10-15"
+      "numero": "1601",
+      "serie": "127 ver secos",
+      "fecha": "2025-10-16"
     },
     {
-      "numero": "2959",
-      "serie": "106 ver secos",
-      "fecha": "2025-10-08"
+      "numero": "3084",
+      "serie": "378 ver secos",
+      "fecha": "2025-10-09"
     },
     {
-      "numero": "4972",
-      "serie": "085 ver secos",
-      "fecha": "2025-10-01"
+      "numero": "4734",
+      "serie": "005 ver secos",
+      "fecha": "2025-10-02"
     },
     {
-      "numero": "1109",
-      "serie": "040 ver secos",
-      "fecha": "2025-09-24"
+      "numero": "8488",
+      "serie": "217 ver secos",
+      "fecha": "2025-09-25"
     },
     {
-      "numero": "6738",
-      "serie": "142 ver secos",
-      "fecha": "2025-09-17"
+      "numero": "9307",
+      "serie": "233 ver secos",
+      "fecha": "2025-09-18"
     },
     {
-      "numero": "5951",
-      "serie": "147 ver secos",
-      "fecha": "2025-09-10"
+      "numero": "6747",
+      "serie": "224 ver secos",
+      "fecha": "2025-09-11"
     },
     {
-      "numero": "6326",
-      "serie": "085 ver secos",
-      "fecha": "2025-09-03"
+      "numero": "6124",
+      "serie": "297 ver secos",
+      "fecha": "2025-09-04"
     },
     {
-      "numero": "1288",
-      "serie": "147 ver secos",
-      "fecha": "2025-08-27"
+      "numero": "9673",
+      "serie": "407 ver secos",
+      "fecha": "2025-08-28"
     }
   ],
   "Valle": [
@@ -776,6 +672,58 @@
     {
       "numero": "2747",
       "serie": "104 ver secos",
+      "fecha": "2025-08-27"
+    }
+  ],
+  "Meta": [
+    {
+      "numero": "9130",
+      "serie": "010 ver secos",
+      "fecha": "2025-10-29"
+    },
+    {
+      "numero": "7381",
+      "serie": "148 ver secos",
+      "fecha": "2025-10-22"
+    },
+    {
+      "numero": "8593",
+      "serie": "098 ver secos",
+      "fecha": "2025-10-15"
+    },
+    {
+      "numero": "2959",
+      "serie": "106 ver secos",
+      "fecha": "2025-10-08"
+    },
+    {
+      "numero": "4972",
+      "serie": "085 ver secos",
+      "fecha": "2025-10-01"
+    },
+    {
+      "numero": "1109",
+      "serie": "040 ver secos",
+      "fecha": "2025-09-24"
+    },
+    {
+      "numero": "6738",
+      "serie": "142 ver secos",
+      "fecha": "2025-09-17"
+    },
+    {
+      "numero": "5951",
+      "serie": "147 ver secos",
+      "fecha": "2025-09-10"
+    },
+    {
+      "numero": "6326",
+      "serie": "085 ver secos",
+      "fecha": "2025-09-03"
+    },
+    {
+      "numero": "1288",
+      "serie": "147 ver secos",
       "fecha": "2025-08-27"
     }
   ]

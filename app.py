@@ -60,7 +60,7 @@ DIAS_LOTERIA = {
 }
 
 # Números especiales a analizar
-NUMEROS_ESPECIALES = ["0419", "0116", "2710", "1012", "6888"]
+NUMEROS_ESPECIALES = ["0419", "0116", "2710", "1012", "6888", "2934"]
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
