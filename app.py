@@ -1,123 +1,29 @@
-import json
-import threading
-import shutil
-import os
-from datetime import datetime, timedelta
-import pandas as pd
-import numpy as np
-import requests
-from bs4 import BeautifulSoup
-from flask import Flask, render_template, request, jsonify, send_from_directory
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, confusion_matrix, precision_recall_curve
-from sklearn.preprocessing import StandardScaler
-from sklearn.utils.class_weight import compute_class_weight
-from xgboost import XGBClassifier
-from imblearn.over_sampling import SMOTE
-import urllib3
-import socket
-import time
-import warnings
-from scipy import stats
-
-warnings.filterwarnings('ignore')
-
-app = Flask(__name__)
-app.config['PREFERRED_URL_SCHEME'] = 'https'
-app.config['TRUST_REMOTE_ADDR'] = True
-
-ruta_archivo = "resultados_loterias.json"
-ruta_cache = "cache_loterias.json"
-carpeta_static = "static"
-archivo_json_static = os.path.join(carpeta_static, ruta_archivo)
-
-analisis_texto = ""
-datos_ultimo_sorteo = {}
-predicciones_diarias = {}
-analisis_numeros_especiales = {}
-tiempo_ultima_actualizacion = None
-proceso_en_curso = False
-lock = threading.Lock()
-modelo_ia = None
-NUMEROS_ESPECIALES = ["0419", "0116", "2710", "1012", "6888"]
-
-# 📅 CALENDARIO ACTUALIZADO DE LOTERÍAS
-DIAS_LOTERIA = {
-    "Cundinamarca": [0],
-    "Tolima": [0],
-    "Cruz Roja": [1],
-    "Huila": [1],
-    "Manizales": [2],
-    "Valle": [2],
-    "Meta": [2],
-    "Bogotá": [3],
-    "Quindío": [3],
-    "Medellín": [4],
-    "Risaralda": [4],
-    "Santander": [4],
-    "Boyacá": [5],
-    "Cauca": [5]
-}
-
-def validar_fecha(fecha_str):
-    """Valida y convierte string de fecha a objeto datetime"""
-    formatos = ["%d/%m/%Y", "%d-%m-%Y", "%d/%m/%y", "%d-%m-%y", "%Y-%m-%d"]
-    for fmt in formatos:
-        try:
-            return datetime.strptime(fecha_str, fmt)
-        except ValueError:
-            continue
-    return None
-
-def crear_o_validar_archivo_json():
-    if not os.path.exists(ruta_archivo):
-        with open(ruta_archivo, "w", encoding="utf-8") as f:
-            json.dump({}, f)
-
-def asegurar_carpeta_static():
-    if not os.path.exists(carpeta_static):
-        os.makedirs(carpeta_static)
-
-def copiar_json_a_static():
-    asegurar_carpeta_static()
-    if os.path.exists(ruta_archivo):
-        try:
-            shutil.copy(ruta_archivo, archivo_json_static)
-        except:
-            pass
-
-def cargar_historico_local():
-    pass
-
-def cargar_historial(ruta):
-    try:
-        with open(ruta, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except:
-        return {}
-
-def guardar_cache(datos):
-    pass
-
-def cargar_cache():
-    pass
-
-# ==================== SCRAPING DE LOTERÍAS ====================
-
-def guardar_cache(datos):
 def obtener_resultados_loteria_tabla(nombre, url):
-    """Obtiene resultados de loterías tradicionales desde resultadodelaloteria.com"""
-    resultados = []
-try:
-        with open(ruta_cache, "w", encoding="utf-8") as f:
-            json.dump(datos, f, ensure_ascii=False)
-    except:
-        pass
-        response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10, verify=False)
-        if response.status_code != 200:
-            print(f"⚠️ {nombre}: Error HTTP {response.status_code}")
-            return resultados
+    try:
+        # Código real para obtener resultados, ejemplo:
+        respuesta = requests.get(url, verify=False, timeout=10)
+        if respuesta.status_code == 200:
+            soup = BeautifulSoup(respuesta.text, 'html.parser')
+            # Procesar tabla o datos en soup aquí
+            return True  # o datos obtenidos
+        else:
+            return False
+    except Exception as e:
+        print(f"Error al obtener resultados: {e}")
+        return False
+
+def procesar_predicciones():
+    # Lógica para procesar predicciones
+    pass  # Rellena aquí o elimina si usas código real
+
+def actualizar_cache():
+    # Actualizar cache en archivo JSON
+    pass  # Rellena o implementa
+
+def manejar_error(error):
+    print(error)
+    # Más manejo de error
+    pass
 
 # ==================== SCRAPING MEJORADO ====================
         soup = BeautifulSoup(response.text, "html.parser")
