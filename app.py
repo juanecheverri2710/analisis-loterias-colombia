@@ -30,11 +30,6 @@ predicciones_diarias = {}
 analisis_numeros_especiales = {}
 progreso_analisis = {"estado": "inactivo", "mensaje": "", "porcentaje": 0}
 
-NUMEROS_ESPECIALES = ["0419", "0116", "2710", "1012", "6888"]
-
-SESSION = requests.Session()
-SESSION.headers.update({'User-Agent': 'Mozilla/5.0'})
-
 
 def validar_fecha(fecha_str):
     formatos = ["%d/%m/%Y", "%d-%m-%Y", "%d/%m/%y", "%d-%m-%y", "%Y-%m-%d"]
@@ -78,162 +73,6 @@ def actualizar_progreso(estado, mensaje, porcentaje):
     print(f"📊 [{porcentaje}%] {mensaje}")
 
 
-def obtener_solo_ultimo_resultado(nombre, url, fecha_limite):
-    try:
-        response = SESSION.get(url, timeout=10, verify=True)
-        if response.status_code != 200:
-            return None
-        soup = BeautifulSoup(response.text, "html.parser")
-        tablas = soup.find_all("table")
-        for tabla in tablas:
-            encabezados = [th.text.strip() for th in tabla.find_all("th")]
-            if "# Sorteo" in encabezados and "Fecha" in encabezados and "Resultado" in encabezados:
-                filas = tabla.find_all("tr")[1:2]
-                if filas:
-                    celdas = filas[0].find_all("td")
-                    if len(celdas) >= 3:
-                        fecha_texto = celdas[1].text.strip()
-                        fecha = validar_fecha(fecha_texto)
-                        if fecha and fecha > fecha_limite:
-                            numero = celdas[2].text.strip()
-                            serie = "No disponible"
-                            if "serie" in numero.lower():
-                                partes = numero.lower().split("serie")
-                                numero = partes[0].strip()
-                                serie = partes[1].strip()
-                            numero_limpio = str(int(numero.lstrip('0') or '0')).zfill(4)
-                            return {"numero": numero_limpio, "serie": serie, "fecha": fecha.strftime("%Y-%m-%d")}
-        return None
-    except:
-        return None
-
-
-def obtener_actualizaciones_recientes():
-    loterias_urls = {
-        # tus URLs de loterías ...
-    }
-
-    actualizar_progreso("procesando", "Verificando...", 10)
-    historico = cargar_historial(ruta_archivo)
-    fechas_limite = {}
-
-    for loteria, sorteos in historico.items():
-        if sorteos:
-            fecha_str = sorteos[0].get("fecha", "")
-            fecha_obj = validar_fecha(fecha_str)
-            fechas_limite[loteria] = fecha_obj if fecha_obj else datetime.now() - timedelta(days=30)
-        else:
-            fechas_limite[loteria] = datetime.now() - timedelta(days=30)
-
-    actualizaciones = {}
-    contador = 0
-    total = len(loterias_urls)
-
-    from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError
-    try:
-        with ThreadPoolExecutor(max_workers=5) as executor:
-            futuros = {executor.submit(obtener_solo_ultimo_resultado, nombre, url,
-                                    fechas_limite.get(nombre, datetime.now() - timedelta(days=7))): nombre
-                      for nombre, url in loterias_urls.items()}
-            for futuro in as_completed(futuros, timeout=60):
-                nombre = futuros[futuro]
-                contador += 1
-                try:
-                    resultado = futuro.result(timeout=3)
-                    actualizaciones[nombre] = [resultado] if resultado else []
-                    actualizar_progreso("procesando", f"{contador}/{total}", 10 + int((contador / total) * 40))
-                except:
-                    actualizaciones[nombre] = []
-    except TimeoutError:
-        pass
-
-    return actualizaciones
-
-
-def combinar_resultados_acumulativo(historico, nuevos):
-    actualizar_progreso("procesando", "Combinando...", 55)
-    dfs = []
-    for lot, res in historico.items():
-        if res:
-            df_temp = pd.DataFrame(res)
-            df_temp["loteria"] = lot
-            dfs.append(df_temp)
-    for lot, res in nuevos.items():
-        if res:
-            df_temp = pd.DataFrame(res)
-            df_temp["loteria"] = lot
-            dfs.append(df_temp)
-    if dfs:
-        df_combinado = pd.concat(dfs, ignore_index=True)
-    else:
-        df_combinado = pd.DataFrame(columns=["numero", "serie", "fecha", "loteria"])
-    df_combinado["fecha"] = pd.to_datetime(df_combinado["fecha"])
-    df_combinado = df_combinado.sort_values('fecha', ascending=False)
-    df_combinado.drop_duplicates(subset=["loteria", "fecha", "numero"], inplace=True, keep='first')
-    resultado_final = {}
-    for lot in df_combinado["loteria"].unique():
-        df_loteria = df_combinado[df_combinado["loteria"] == lot].copy()
-        df_loteria["fecha"] = df_loteria["fecha"].dt.strftime("%Y-%m-%d")
-        resultado_final[lot] = df_loteria[["numero", "serie", "fecha"]].to_dict(orient="records")
-    return resultado_final
-
-
-def entrenar_modelo_xgboost_simple(df):
-    global modelo_ia
-    print("\n🤖 ENTRENANDO MODELO IA (XGBoost - SIN SMOTE)")
-    actualizar_progreso("entrenando", "Preparando datos...", 60)
-    df['numero_int'] = df['numero'].astype(int)
-    features, labels = [], []
-    for loteria in df['loteria'].unique():
-        df_lot = df[df['loteria'] == loteria].sort_values('fecha')
-        for i in range(5, min(len(df_lot), 100)):
-            ultimos_5 = df_lot.iloc[i - 5:i]['numero_int'].values
-            features.append(list(ultimos_5))
-            labels.append(df_lot.iloc[i]['numero_int'])
-    if len(features) < 30:
-        print("⚠️ Datos insuficientes")
-        return None
-    X, y = np.array(features), np.array(labels)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    actualizar_progreso("entrenando", "Entrenando XGBoost...", 70)
-    modelo = XGBClassifier(
-        n_estimators=30,
-        max_depth=3,
-        learning_rate=0.1,
-        random_state=42,
-        n_jobs=1,
-        verbosity=0
-    )
-    modelo.fit(X_train, y_train)
-    score = modelo.score(X_test, y_test)
-    print(f"✅ Modelo entrenado - Precisión: {score * 100:.2f}%")
-    try:
-        with open(modelo_pkl, 'wb') as f:
-            pickle.dump(modelo, f)
-        print("💾 Modelo guardado en disco")
-    except:
-        pass
-    modelo_ia = modelo
-    return modelo
-
-
-def cargar_o_entrenar_modelo(df):
-    global modelo_ia
-    if os.path.exists(modelo_pkl):
-        try:
-            tiempo_modelo = os.path.getmtime(modelo_pkl)
-            if (time.time() - tiempo_modelo) < 86400:
-                print("✅ Cargando modelo guardado...")
-                actualizar_progreso("cargando_modelo", "Cargando IA...", 65)
-                with open(modelo_pkl, 'rb') as f:
-                    modelo_ia = pickle.load(f)
-                print("✅ Modelo cargado desde disco")
-                return modelo_ia
-        except:
-            pass
-    return entrenar_modelo_xgboost_simple(df)
-
-
 def generar_datos_ultimo_sorteo():
     global datos_ultimo_sorteo
     try:
@@ -242,13 +81,13 @@ def generar_datos_ultimo_sorteo():
         datos_ultimo_sorteo = {}
         for loteria, sorteos in datos.items():
             if sorteos and len(sorteos) > 0:
-                ultimo = sorteos[0]
+                ultimo = sorteos[0]  # Se asume que primer registro es el último sorteo
                 datos_ultimo_sorteo[loteria] = {
                     "numero": str(ultimo.get("numero", "N/A")).zfill(4),
                     "signo": str(ultimo.get("serie", "N/A")),
                     "fecha": str(ultimo.get("fecha", "N/A"))
                 }
-        print(f"✅ Datos último sorteo cargados: {len(datos_ultimo_sorteo)} loterías")
+        print(f"✅ Datos del último sorteo cargados: {len(datos_ultimo_sorteo)} loterías")
         return True
     except Exception as e:
         print(f"⚠️ Error cargando datos últimos sorteos: {e}")
@@ -287,7 +126,7 @@ def analizar_numeros_especiales_probabilidad():
         hoy = datetime.now()
         fecha_limite = hoy - timedelta(days=365)
         analisis_numeros_especiales = {}
-        for numero_especial in NUMEROS_ESPECIALES:
+        for numero_especial in ["0419", "0116", "2710", "1012", "6888"]:
             numero_info = {
                 "numero": numero_especial, "apariciones_total": 0,
                 "apariciones_1ano": 0, "loterrias_donde_cayo": {}, "probabilidad": 0
@@ -325,6 +164,7 @@ def ejecutar_scraping_y_analisis():
             if historico:
                 total = sum(len(v) for v in historico.values())
                 print(f"✅ Histórico: {total} registros")
+            # Scraping optimizado (solo nuevos)
             actualizaciones = obtener_actualizaciones_recientes()
             total_nuevos = sum(len(v) for v in actualizaciones.values())
             if total_nuevos > 0:
@@ -337,7 +177,9 @@ def ejecutar_scraping_y_analisis():
             with open(ruta_archivo, "w", encoding="utf-8") as f:
                 json.dump(combinado, f, indent=2, ensure_ascii=False)
             copiar_json_a_static()
+            # Actualizar datos último sorteo
             generar_datos_ultimo_sorteo()
+
             df_completo = []
             for lot, sorteos in combinado.items():
                 for sorteo in sorteos:
@@ -348,6 +190,7 @@ def ejecutar_scraping_y_analisis():
                 cargar_o_entrenar_modelo(df)
                 generar_predicciones_diarias()
                 analizar_numeros_especiales_probabilidad()
+
             analisis_texto = f"✅ Análisis completo con IA. {total_nuevos} actualizaciones."
             actualizar_progreso("completado", "✅ Completado!", 100)
             print("✅ [100%] COMPLETO")
@@ -356,8 +199,6 @@ def ejecutar_scraping_y_analisis():
         actualizar_progreso("error", str(e), 0)
         print(f"❌ {str(e)}")
 
-
-# Rutas Flask
 
 @app.route("/")
 def index():
@@ -389,7 +230,6 @@ def get_analisis_numeros():
 @app.route('/static/<path:filename>')
 def static_files(filename):
     return send_from_directory(carpeta_static, filename)
-
 
 if __name__ == "__main__":
     puerto = int(os.environ.get("PORT", 5000))
