@@ -20,6 +20,8 @@ predicciones_diarias = {}
 analisis_numeros_especiales = {}
 progreso_analisis = {"estado": "inactivo", "mensaje": "", "porcentaje": 0}
 
+# Funciones validación y carga
+
 def validar_fecha(fecha_str):
     formatos = ["%d/%m/%Y", "%d-%m-%Y", "%d/%m/%y", "%d-%m-%y", "%Y-%m-%d"]
     for fmt in formatos:
@@ -57,6 +59,7 @@ def actualizar_progreso(estado, mensaje, porcentaje):
     print(f"📊 [{porcentaje}%] {mensaje}")
 
 def obtener_actualizaciones_recientes():
+    # URLs ficticias; sustituye por URLs reales o implementa scraping
     loterias_urls = {
         "Boyacá": "http://url",
         "Cruz Roja": "http://url",
@@ -73,11 +76,8 @@ def obtener_actualizaciones_recientes():
         "Valle": "http://url",
         "Cauca": "http://url"
     }
-    # Evita errores si no hay scraping real:
     actualizar_progreso("procesando", "Sin scraping para demo...", 20)
-    actualizaciones = {}
-    for lot in loterias_urls:
-        actualizaciones[lot] = []
+    actualizaciones = {lot: [] for lot in loterias_urls}
     return actualizaciones
 
 def combinar_resultados_acumulativo(historico, nuevos):
@@ -114,7 +114,7 @@ def generar_datos_ultimo_sorteo():
             datos = json.load(f)
         datos_ultimo_sorteo = {}
         for loteria, sorteos in datos.items():
-            if sorteos and len(sorteos) > 0:
+            if sorteos:
                 ultimo = sorteos[0]
                 datos_ultimo_sorteo[loteria] = {
                     "numero": str(ultimo.get("numero", "N/A")).zfill(4),
@@ -122,10 +122,8 @@ def generar_datos_ultimo_sorteo():
                     "fecha": str(ultimo.get("fecha", "N/A"))
                 }
         print(f"✅ Datos último sorteo cargados: {len(datos_ultimo_sorteo)} loterías")
-        return True
     except Exception as e:
         print(f"⚠️ Error cargando datos últimos sorteos: {e}")
-        return False
 
 def generar_predicciones_diarias():
     global predicciones_diarias
@@ -134,17 +132,14 @@ def generar_predicciones_diarias():
             datos = json.load(f)
         predicciones_diarias = {}
         for loteria, sorteos in datos.items():
-            if sorteos and len(sorteos) > 0:
+            if sorteos:
                 numeros_freq = {}
                 for sorteo in sorteos[:10]:
                     num = str(sorteo.get("numero", "0")).strip().zfill(4)
                     numeros_freq[num] = numeros_freq.get(num, 0) + 1
                 if numeros_freq:
                     top = sorted(numeros_freq.items(), key=lambda x: x[1], reverse=True)
-                    predicciones_diarias[loteria] = {
-                        "numero": top[0][0],
-                        "frecuencia": top[0][1]
-                    }
+                    predicciones_diarias[loteria] = {"numero": top[0][0], "frecuencia": top[0][1]}
         print(f"✅ Predicciones diarias generadas: {len(predicciones_diarias)} loterías")
     except Exception as e:
         print(f"⚠️ Error generando predicciones: {e}")
@@ -173,8 +168,7 @@ def analizar_numeros_especiales_probabilidad():
                             numero_info["apariciones_total"] += 1
                             if fecha_obj >= fecha_limite:
                                 numero_info["apariciones_1ano"] += 1
-                            numero_info["loterrias_donde_cayo"][loteria] = (
-                                numero_info["loterrias_donde_cayo"].get(loteria, 0) + 1)
+                            numero_info["loterrias_donde_cayo"][loteria] = numero_info["loterrias_donde_cayo"].get(loteria, 0) + 1
             if numero_info["apariciones_total"] > 0:
                 numero_info["probabilidad"] = min(100, (numero_info["apariciones_total"] / 5 / 16) * 100)
             analisis_numeros_especiales[numero_especial] = numero_info
@@ -185,15 +179,13 @@ def analizar_numeros_especiales_probabilidad():
 def ejecutar_scraping_y_analisis():
     global analisis_texto
     try:
-        print("\n🔄 Iniciando análisis...")
         crear_o_validar_archivo_json()
         asegurar_carpeta_static()
         actualizar_progreso("procesando", "Cargando...", 5)
         with lock:
             historico = cargar_historial(ruta_archivo)
-            if historico:
-                total = sum(len(v) for v in historico.values())
-                print(f"✅ Histórico: {total} registros")
+            total = sum(len(v) for v in historico.values()) if historico else 0
+            print(f"✅ Histórico: {total} registros")
             actualizaciones = obtener_actualizaciones_recientes()
             total_nuevos = sum(len(v) for v in actualizaciones.values())
             if total_nuevos > 0:
@@ -206,12 +198,12 @@ def ejecutar_scraping_y_analisis():
             with open(ruta_archivo, "w", encoding="utf-8") as f:
                 json.dump(combinado, f, indent=2, ensure_ascii=False)
             copiar_json_a_static()
-            generar_datos_ultimo_sorteo()
-            generar_predicciones_diarias()
-            analizar_numeros_especiales_probabilidad()
-            analisis_texto = f"✅ Análisis completo con IA. {total_nuevos} actualizaciones."
-            actualizar_progreso("completado", "✅ Completado!", 100)
-            print("✅ [100%] COMPLETO")
+        generar_datos_ultimo_sorteo()
+        generar_predicciones_diarias()
+        analizar_numeros_especiales_probabilidad()
+        analisis_texto = f"✅ Análisis completo con IA. {total_nuevos} actualizaciones."
+        actualizar_progreso("completado", "✅ Completado!", 100)
+        print("✅ [100%] COMPLETO")
     except Exception as e:
         analisis_texto = f"Error: {str(e)}"
         actualizar_progreso("error", str(e), 0)
