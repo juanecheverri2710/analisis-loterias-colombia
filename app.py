@@ -14,7 +14,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.utils.class_weight import compute_class_weight
 from xgboost import XGBClassifier
 from imblearn.over_sampling import SMOTE
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError
+from collections import OrderedDict
 import socket
 import time
 import warnings
@@ -64,8 +65,6 @@ DIAS_LOTERIA = {
 }
 
 # ⭐ CALENDARIO ORDENADO PARA FRONTEND
-from collections import OrderedDict
-
 calendario = OrderedDict([
     ('Domingo', []),
     ('Lunes', ['Cundinamarca', 'Tolima']),
@@ -219,7 +218,7 @@ def obtener_resultados_loteria_tabla(nombre, url, reintentos=3):
     return resultados
 
 def obtener_todas_loterias_paralelo():
-    """⚡ Obtiene loterías EN PARALELO (5x más rápido)"""
+    """⚡ Obtiene loterías EN PARALELO con timeout global"""
     loterias_urls = {
         "Boyacá": "https://resultadodelaloteria.com/colombia/loteria-de-boyaca",
         "Cruz Roja": "https://resultadodelaloteria.com/colombia/loteria-de-la-cruz-roja",
@@ -244,24 +243,36 @@ def obtener_todas_loterias_paralelo():
 
     actualizar_progreso("procesando", "Iniciando descarga paralela", 10)
 
-    # Procesar EN PARALELO con máximo 5 hilos simultáneos
-    with ThreadPoolExecutor(max_workers=5) as executor:
-        futuros = {
-            executor.submit(obtener_resultados_loteria_tabla, nombre, url): nombre 
-            for nombre, url in loterias_urls.items()
-        }
+    # ⭐ TIMEOUT GLOBAL DE 120 SEGUNDOS
+    try:
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            futuros = {
+                executor.submit(obtener_resultados_loteria_tabla, nombre, url): nombre 
+                for nombre, url in loterias_urls.items()
+            }
 
-        for futuro in as_completed(futuros):
-            nombre = futuros[futuro]
-            contador += 1
-            try:
-                resultados = futuro.result(timeout=20)
-                resultados_totales[nombre] = resultados
-                porcentaje = 10 + int((contador / total_loterias) * 40)
-                actualizar_progreso("procesando", f"Descargadas {contador}/{total_loterias} loterías", porcentaje)
-            except Exception as e:
-                print(f"⚠️ Error en {nombre}: {str(e)}")
-                resultados_totales[nombre] = []
+            # Timeout global: 120 segundos para todas las loterías
+            for futuro in as_completed(futuros, timeout=120):
+                nombre = futuros[futuro]
+                contador += 1
+                try:
+                    resultados = futuro.result(timeout=5)  # Timeout individual más corto
+                    resultados_totales[nombre] = resultados
+                    porcentaje = 10 + int((contador / total_loterias) * 40)
+                    actualizar_progreso("procesando", f"✅ {nombre}: {len(resultados)}", porcentaje)
+                except Exception as e:
+                    print(f"⚠️ Error en {nombre}: {str(e)}")
+                    resultados_totales[nombre] = []
+                    
+    except TimeoutError:
+        print("⚠️ TIMEOUT GLOBAL: Scraping excedió 120 segundos")
+        actualizar_progreso("procesando", "⚠️ Timeout parcial, continuando...", 50)
+
+    # Rellenar loterías faltantes
+    for nombre in loterias_urls.keys():
+        if nombre not in resultados_totales:
+            resultados_totales[nombre] = []
+            print(f"⚠️ {nombre}: Sin datos (timeout)")
 
     tiempo_total = time.time() - tiempo_inicio
     print(f"⏱️ Scraping paralelo completado en {tiempo_total:.2f} segundos")
@@ -296,29 +307,39 @@ def obtener_historico_completo_5anos():
 
     actualizar_progreso("descargando_historico", "Iniciando descarga histórica", 15)
 
-    # Procesar EN PARALELO
-    with ThreadPoolExecutor(max_workers=5) as executor:
-        futuros = {
-            executor.submit(obtener_resultados_loteria_tabla, nombre, url): nombre 
-            for nombre, url in loterias_urls.items()
-        }
+    # ⭐ TIMEOUT GLOBAL DE 180 SEGUNDOS
+    try:
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            futuros = {
+                executor.submit(obtener_resultados_loteria_tabla, nombre, url): nombre 
+                for nombre, url in loterias_urls.items()
+            }
 
-        for futuro in as_completed(futuros):
-            nombre = futuros[futuro]
-            contador += 1
-            try:
-                resultados = futuro.result(timeout=20)
-                historico_completo[nombre] = sorted(
-                    resultados,
-                    key=lambda x: x["fecha"],
-                    reverse=True
-                )
-                porcentaje = 15 + int((contador / total_loterias) * 50)
-                actualizar_progreso("descargando_historico", f"Histórico: {contador}/{total_loterias} loterías", porcentaje)
-                print(f" ✅ {nombre}: {len(resultados)} registros")
-            except Exception as e:
-                print(f" ❌ {nombre}: Error - {str(e)}")
-                historico_completo[nombre] = []
+            for futuro in as_completed(futuros, timeout=180):
+                nombre = futuros[futuro]
+                contador += 1
+                try:
+                    resultados = futuro.result(timeout=5)
+                    historico_completo[nombre] = sorted(
+                        resultados,
+                        key=lambda x: x["fecha"],
+                        reverse=True
+                    )
+                    porcentaje = 15 + int((contador / total_loterias) * 50)
+                    actualizar_progreso("descargando_historico", f"✅ {nombre}: {len(resultados)}", porcentaje)
+                    print(f" ✅ {nombre}: {len(resultados)} registros")
+                except Exception as e:
+                    print(f" ❌ {nombre}: Error - {str(e)}")
+                    historico_completo[nombre] = []
+                    
+    except TimeoutError:
+        print("⚠️ TIMEOUT GLOBAL: Descarga histórica excedió 180 segundos")
+        actualizar_progreso("procesando", "⚠️ Timeout parcial en histórico", 65)
+
+    # Rellenar faltantes
+    for nombre in loterias_urls.keys():
+        if nombre not in historico_completo:
+            historico_completo[nombre] = []
 
     print("\n" + "="*100)
     print("✅ DESCARGA HISTÓRICA COMPLETADA")
@@ -601,8 +622,6 @@ def ejecutar_scraping_y_analisis():
             analizar_numeros_especiales_probabilidad()
 
         analisis_texto = "✅ Análisis completado exitosamente."
-        
-        # ⭐ AGREGAR ESTAS 2 LÍNEAS:
         actualizar_progreso("completado", "✅ ¡Análisis completado!", 100)
         print("✅ [100%] Análisis COMPLETO - Estado: completado")
         
@@ -610,8 +629,6 @@ def ejecutar_scraping_y_analisis():
         analisis_texto = f"Error: {str(e)}"
         actualizar_progreso("error", str(e), 0)
         print(f"❌ Error: {str(e)}")
-
-# ==================== PROCESO PRINCIPAL ====================
 
 # ==================== RUTAS FLASK ====================
 
@@ -664,18 +681,7 @@ def static_files(filename):
 @app.route('/get-calendario', methods=['GET'])
 def get_calendario():
     """Retorna el calendario ordenado correctamente"""
-    # ⭐ ORDEN CORRECTO: Domingo → Sábado
-    orden_dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
-    
-    calendario_ordenado = OrderedDict()
-    for dia in orden_dias:
-        if dia in calendario:
-            calendario_ordenado[dia] = calendario[dia]
-        else:
-            calendario_ordenado[dia] = []
-    
-    return jsonify(calendario_ordenado)
-
+    return jsonify(calendario)
 
 @app.route("/obtener-historico", methods=["POST"])
 def obtener_historico():
@@ -768,6 +774,7 @@ if __name__ == "__main__":
 
     print("\n⚡ OPTIMIZACIONES ACTIVADAS:")
     print("  ✅ Scraping paralelo (5 hilos simultáneos)")
+    print("  ✅ Timeout global (120s + 180s)")
     print("  ✅ SSL verification activo")
     print("  ✅ Manejo robusto de excepciones")
     print("  ✅ Sistema de progreso en tiempo real")

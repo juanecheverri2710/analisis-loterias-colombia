@@ -3,292 +3,450 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Análisis de Loterías Colombia</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <meta name="description" content="Análisis avanzado de loterías colombianas con IA - Predicciones basadas en 5 años de datos">
+    <title>Análisis de Loterías Colombia - IA & Predicciones</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <span class="navbar-logo">🎰</span>
+            <span>Análisis de Loterías Colombianas</span>
+        </div>
+    </nav>
+
+    <!-- CONTAINER PRINCIPAL -->
     <div class="container">
-        <!-- Header -->
+        <!-- HEADER -->
         <header class="header">
-            <div class="header-content">
-                <div class="header-title">
-                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%23FFD700' x='10' y='10' width='30' height='30' rx='5'/%3E%3Crect fill='%23FF6B6B' x='50' y='10' width='30' height='30' rx='5'/%3E%3Crect fill='%234ECDC4' x='30' y='50' width='30' height='30' rx='5'/%3E%3C/svg%3E" alt="Logo">
-                    <h1>Análisis de Loterías Colombia</h1>
-                </div>
-                <p class="subtitle">Predicciones basadas en análisis de datos históricos y Machine Learning</p>
-            </div>
+            <h1 class="main-title">🎯 Análisis de Loterías Colombianas</h1>
+            <p class="subtitle">Predicciones con Inteligencia Artificial | 14 Loterías | 5 Años de Datos</p>
         </header>
 
-        <!-- 🆕 CONTENEDOR DE PROGRESO EN TIEMPO REAL -->
-        <div id="progreso-container" style="display:none; margin: 20px 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-            <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 18px;">📊 Estado del Análisis en Tiempo Real</h3>
-
-            <p style="margin-bottom: 10px;">
-                <strong>Paso Actual:</strong> <span id="mensaje-progreso">Iniciando...</span>
-            </p>
-
-            <progress id="barra-progreso" value="0" max="100" style="width: 100%; height: 30px; border-radius: 5px; appearance: none; -webkit-appearance: none;"></progress>
-
-            <style>
-                #barra-progreso::-webkit-progress-bar {
-                    background-color: rgba(255,255,255,0.3);
-                    border-radius: 5px;
-                }
-                #barra-progreso::-webkit-progress-value {
-                    background: linear-gradient(90deg, #00d2fc 0%, #3677ff 100%);
-                    border-radius: 5px;
-                }
-                #barra-progreso::-moz-progress-bar {
-                    background: linear-gradient(90deg, #00d2fc 0%, #3677ff 100%);
-                    border-radius: 5px;
-                }
-            </style>
-
-            <p style="text-align: center; font-size: 24px; margin: 15px 0; font-weight: bold;">
-                <span id="porcentaje-progreso">0</span>%
-            </p>
-
-            <p id="estado-analisis" style="font-size: 14px; text-align: center; margin: 10px 0; opacity: 0.9;"></p>
-        </div>
-
-        <!-- Stats -->
-        <section class="stats">
-            <div class="stat-card">
-                <h3>14 Loterías</h3>
-                <p>Análisis completo</p>
-            </div>
-            <div class="stat-card">
-                <h3>5 Años</h3>
-                <p>De histórico</p>
-            </div>
-            <div class="stat-card">
-                <h3>10K Números</h3>
-                <p>Procesados</p>
-            </div>
-            <div class="stat-card">
-                <h3>🤖 IA</h3>
-                <p>XGBoost ML</p>
-            </div>
-        </section>
-
-        <!-- Calendario -->
-        <section class="section">
-            <h2>📅 Calendario de Loterías</h2>
-            <div id="calendario-container" class="calendario">
-                <!-- Se llenará con JavaScript -->
-            </div>
-        </section>
-
-        <!-- Análisis Section -->
-        <section class="section">
-            <h2>🔍 Análisis Completo</h2>
-            <button id="btnAnalizar" class="btn-primary">🚀 Iniciar Análisis Completo</button>
-            <div id="resultado" class="resultado"></div>
-        </section>
-
-        <!-- Último Sorteo -->
-        <section class="section">
-            <h2>🎰 Últimos Resultados</h2>
-            <div id="sorteos-container" class="sorteos-grid">
-                <!-- Se llenará con JavaScript -->
-            </div>
-        </section>
-
-        <!-- Predicciones Diarias -->
-        <section class="section">
-            <h2>🎯 Predicciones para Hoy</h2>
-            <div id="predicciones-container" class="predicciones-grid">
-                <!-- Se llenará con JavaScript -->
-            </div>
-        </section>
-
-        <!-- Números Especiales -->
-        <section class="section">
-            <h2>✨ Análisis de Números Especiales</h2>
-            <div id="numeros-especiales-container" class="numeros-especiales">
-                <!-- Se llenará con JavaScript -->
-            </div>
-        </section>
-
-        <!-- Características -->
-        <section class="section features">
-            <h2>✨ Características</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <h3>📊 14 Loterías Colombianas</h3>
-                    <p>Boyacá, Cruz Roja, Manizales, Cundinamarca, Tolima, Medellín, Santander, Huila, Risaralda, Bogotá, Meta, Quindío, Valle, Cauca</p>
+        <!-- MAIN CONTENT -->
+        <main class="main">
+            <!-- ESTADÍSTICAS -->
+            <section class="section-stats">
+                <div class="stat-box">
+                    <span class="stat-value">14</span>
+                    <span class="stat-text">Loterías</span>
                 </div>
-                <div class="feature-card">
-                    <h3>🧠 Predicciones Inteligentes</h3>
-                    <p>Basadas en análisis de frecuencia del JSON histórico</p>
+                <div class="stat-box">
+                    <span class="stat-value">5</span>
+                    <span class="stat-text">Años</span>
                 </div>
-                <div class="feature-card">
-                    <h3>🤖 Modelo XGBoost</h3>
-                    <p>Algoritmo de Machine Learning con balanceo SMOTE</p>
+                <div class="stat-box">
+                    <span class="stat-value">10K+</span>
+                    <span class="stat-text">Números</span>
                 </div>
-                <div class="feature-card">
-                    <h3>📈 5 Años de Datos</h3>
-                    <p>Más de 1,825 días de histórico analizado</p>
+                <div class="stat-box">
+                    <span class="stat-value">🤖 IA</span>
+                    <span class="stat-text">XGBoost</span>
                 </div>
-                <div class="feature-card">
-                    <h3>📍 Análisis de Números</h3>
-                    <p>Probabilidad estimada, últimas apariciones e intervalo promedio</p>
-                </div>
-                <div class="feature-card">
-                    <h3>⚖️ Balanceo SMOTE</h3>
-                    <p>Para mejorar precisión en predicciones</p>
-                </div>
-                <div class="feature-card">
-                    <h3>📅 Predicciones Diarias</h3>
-                    <p>Según el día de juego de cada lotería (calendario actualizado)</p>
-                </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Footer -->
+            <!-- BOTONES DE ANÁLISIS -->
+            <section class="section-buttons">
+                <button id="btn-iniciar" class="btn btn-primary">
+                    <span class="btn-icon">🚀</span>
+                    <span>Iniciar Análisis Completo</span>
+                </button>
+                <button id="btn-historico" class="btn btn-secondary">
+                    <span class="btn-icon">📥</span>
+                    <span>Descargar Histórico (5 Años)</span>
+                </button>
+            </section>
+
+            <!-- BARRA DE PROGRESO -->
+            <div id="progress-container" class="progress-container" style="display: none;">
+                <div class="progress-bar">
+                    <div id="progress-bar-fill" class="progress-bar-fill"></div>
+                </div>
+                <p id="progress-text" class="progress-text">Esperando...</p>
+            </div>
+
+            <!-- CALENDARIO DE LOTERÍAS -->
+            <section class="section-calendario">
+                <h2 class="section-title">
+                    <span class="section-icon">📅</span>
+                    Calendario de Loterías
+                </h2>
+                <div id="calendario" class="calendario-grid">
+                    <!-- Se llena dinámicamente -->
+                </div>
+            </section>
+
+            <!-- ÚLTIMOS RESULTADOS -->
+            <section class="section-resultados">
+                <h2 class="section-title">
+                    <span class="section-icon">🎰</span>
+                    Últimos Resultados
+                </h2>
+                <div id="resultados" class="resultados-grid">
+                    <p class="empty-state">No hay datos disponibles aún</p>
+                </div>
+            </section>
+
+            <!-- PREDICCIONES PARA HOY -->
+            <section class="section-predicciones">
+                <h2 class="section-title">
+                    <span class="section-icon">🎯</span>
+                    Predicciones para Hoy
+                </h2>
+                <div id="predicciones" class="predicciones-grid">
+                    <p class="empty-state">No hay predicciones disponibles</p>
+                </div>
+            </section>
+
+            <!-- ANÁLISIS DE NÚMEROS ESPECIALES -->
+            <section class="section-analisis">
+                <h2 class="section-title">
+                    <span class="section-icon">✨</span>
+                    Análisis de Números Especiales
+                </h2>
+                <div id="analisis-numeros" class="analisis-grid">
+                    <p class="empty-state">No hay análisis disponible</p>
+                </div>
+            </section>
+
+            <!-- CARACTERÍSTICAS -->
+            <section class="section-features">
+                <h2 class="section-title">✨ Características</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🎰</div>
+                        <h3>14 Loterías Colombianas</h3>
+                        <p>Boyacá, Cruz Roja, Manizales, Cundinamarca, Tolima, Medellín, Santander, Huila, Risaralda, Bogotá, Meta, Quindío, Valle, Cauca</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🤖</div>
+                        <h3>Predicciones Inteligentes</h3>
+                        <p>Basadas en análisis de frecuencia del JSON histórico</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>Modelo XGBoost</h3>
+                        <p>Algoritmo de Machine Learning con balanceo SMOTE</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📅</div>
+                        <h3>5 Años de Datos</h3>
+                        <p>Más de 1,825 días de histórico analizado</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">✨</div>
+                        <h3>Análisis de Números</h3>
+                        <p>Probabilidad estimada, últimas apariciones e intervalo promedio</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚖️</div>
+                        <h3>Balanceo SMOTE</h3>
+                        <p>Para mejorar precisión en predicciones</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🎯</div>
+                        <h3>Predicciones Diarias</h3>
+                        <p>Según el día de juego de cada lotería (calendario actualizado)</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- FOOTER -->
         <footer class="footer">
-            <p>&copy; 2024 Análisis de Loterías. Todos los derechos reservados.</p>
+            <p>© 2025 Análisis de Loterías Colombia | Datos actualizados automáticamente</p>
+            <p class="footer-note">Este sistema utiliza inteligencia artificial para análisis estadístico. Las predicciones son basadas en datos históricos y no garantizan resultados.</p>
         </footer>
     </div>
 
+    <!-- JAVASCRIPT -->
     <script>
-        // API base URL (para Koyeb)
-        const API_BASE = '';
+        // Variables globales
+        let intervalId = null;
 
-        // Obtener calendario
+        // ==================== FUNCIONES DE UI ====================
+        
+        function mostrarProgreso() {
+            document.getElementById('progress-container').style.display = 'block';
+        }
+
+        function ocultarProgreso() {
+            document.getElementById('progress-container').style.display = 'none';
+        }
+
+        function actualizarBarraProgreso(porcentaje, mensaje, estado) {
+            const progressFill = document.getElementById('progress-bar-fill');
+            const progressText = document.getElementById('progress-text');
+            
+            progressFill.style.width = `${porcentaje}%`;
+            progressText.textContent = mensaje;
+            
+            // Cambiar color según estado
+            progressFill.className = 'progress-bar-fill';
+            if (estado === 'completado') {
+                progressFill.classList.add('success');
+            } else if (estado === 'error') {
+                progressFill.classList.add('error');
+            }
+        }
+
+        // ==================== CALENDARIO ====================
+        
         async function cargarCalendario() {
             try {
-                const res = await fetch(API_BASE + '/get-calendario');
-                const calendario = await res.json();
-                const container = document.getElementById('calendario-container');
-
-                let html = '';
-                for (const [dia, loterias] of Object.entries(calendario)) {
-                    html += `
-                        <div class="calendario-dia">
-                            <h4>${dia}</h4>
-                            <div class="loterias-list">
-                                ${loterias.map(l => `<span class="loteria-badge">${l}</span>`).join('')}
+                const response = await fetch('/get-calendario');
+                const calendario = await response.json();
+                
+                // ⭐ ORDEN CORRECTO: DOMINGO PRIMERO
+                const diasOrden = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+                
+                const calendarioDiv = document.getElementById('calendario');
+                calendarioDiv.innerHTML = '';
+                
+                // Iterar en orden fijo
+                for (const dia of diasOrden) {
+                    if (calendario[dia]) {
+                        const loterias = calendario[dia];
+                        const card = document.createElement('div');
+                        card.className = 'calendario-card';
+                        
+                        card.innerHTML = `
+                            <h3>${dia}</h3>
+                            <div class="loteria-badges-container">
+                                ${loterias.length > 0 
+                                    ? loterias.map(l => `<span class="loteria-badge">${l}</span>`).join('') 
+                                    : '<span class="empty-day">Sin sorteos</span>'}
                             </div>
-                        </div>
-                    `;
+                        `;
+                        
+                        calendarioDiv.appendChild(card);
+                    }
                 }
-                container.innerHTML = html;
-            } catch (err) {
-                console.error('Error cargando calendario:', err);
+            } catch (error) {
+                console.error('Error cargando calendario:', error);
             }
         }
 
-        // 🆕 Iniciar análisis CON PROGRESO
-        function iniciarAnalisis() {
-            console.log("🔄 Iniciando análisis...");
-
-            // Mostrar contenedor de progreso
-            document.getElementById('progreso-container').style.display = 'block';
-            document.getElementById('barra-progreso').value = 0;
-            document.getElementById('porcentaje-progreso').textContent = '0';
-            document.getElementById('mensaje-progreso').textContent = 'Iniciando...';
-            document.getElementById('estado-analisis').textContent = '';
-            document.getElementById('resultado').textContent = '';
-
-            // Enviar POST a /start-analysis
-            fetch(API_BASE + '/start-analysis', { method: 'POST' })
-                .then(res => res.json())
-                .then(data => {
-                    console.log("✅ Análisis iniciado:", data.message);
-                    // Iniciar monitoreo de progreso
-                    monitorearProgreso();
-                })
-                .catch(err => {
-                    console.error("❌ Error iniciando análisis:", err);
-                    document.getElementById('estado-analisis').textContent = '❌ Error: ' + err;
-                    document.getElementById('progreso-container').style.display = 'none';
-                });
-        }
-
-        // 🆕 Monitorear progreso EN TIEMPO REAL
-        function monitorearProgreso() {
-            const intervaloProgreso = setInterval(() => {
-                fetch(API_BASE + '/get-progreso')
-                    .then(res => res.json())
-                    .then(data => {
-                        // Actualizar barra de progreso
-                        document.getElementById('barra-progreso').value = data.porcentaje;
-                        document.getElementById('porcentaje-progreso').textContent = data.porcentaje;
-                        document.getElementById('mensaje-progreso').textContent = data.mensaje;
-
-                        console.log(`📊 ${data.porcentaje}% - ${data.mensaje}`);
-
-                        // Si se completa
-                        if (data.estado === 'completado') {
-                            clearInterval(intervaloProgreso);
-                            document.getElementById('estado-analisis').textContent = '✅ ¡Completado!';
-                            document.getElementById('resultado').textContent = '✅ Análisis completado';
-
-                            setTimeout(() => {
-                                cargarResultados();
-                                document.getElementById('progreso-container').style.display = 'none';
-                            }, 1500);
-                        } else if (data.estado === 'error') {
-                            clearInterval(intervaloProgreso);
-                            document.getElementById('estado-analisis').textContent = '❌ Error: ' + data.mensaje;
-                            alert("❌ Error: " + data.mensaje);
-                        }
-                    })
-                    .catch(err => console.error("Error consultando progreso:", err));
-            }, 500);
-        }
-
-        // Cargar resultados
+        // ==================== ÚLTIMOS RESULTADOS ====================
+        
         async function cargarResultados() {
             try {
-                // Último sorteo
-                const sorteos = await fetch(API_BASE + '/get-sorteos').then(r => r.json());
-                const sorteoHtml = Object.entries(sorteos).map(([loteria, data]) => `
-                    <div class="sorteo-card">
-                        <h4>${loteria}</h4>
-                        <div class="numero-grande">${data.numero}</div>
-                        <p>Signo: ${data.signo}</p>
-                        <p class="fecha">${data.fecha}</p>
-                    </div>
-                `).join('');
-                document.getElementById('sorteos-container').innerHTML = sorteoHtml;
-
-                // Predicciones
-                const predicciones = await fetch(API_BASE + '/get-predicciones').then(r => r.json());
-                const predHtml = Object.entries(predicciones).map(([loteria, data]) => `
-                    <div class="prediccion-card">
-                        <h4>${loteria}</h4>
-                        <div class="numero-prediccion">${data.numero}</div>
-                        <p>Frecuencia: ${data.frecuencia}x</p>
-                    </div>
-                `).join('');
-                document.getElementById('predicciones-container').innerHTML = predHtml;
-
-                // Números especiales
-                const analisis = await fetch(API_BASE + '/get-analisis-numeros').then(r => r.json());
-                const analisisHtml = Object.entries(analisis).map(([numero, data]) => `
-                    <div class="numero-especial-card">
-                        <h4>Número: ${numero}</h4>
-                        <p>Apariciones: ${data.apariciones_total}</p>
-                        <p>Probabilidad: ${data.probabilidad.toFixed(2)}%</p>
-                    </div>
-                `).join('');
-                document.getElementById('numeros-especiales-container').innerHTML = analisisHtml;
-            } catch (err) {
-                console.error('Error cargando resultados:', err);
+                const response = await fetch('/get-sorteos');
+                const sorteos = await response.json();
+                
+                const resultadosDiv = document.getElementById('resultados');
+                
+                if (Object.keys(sorteos).length === 0) {
+                    resultadosDiv.innerHTML = '<p class="empty-state">No hay datos disponibles aún</p>';
+                    return;
+                }
+                
+                resultadosDiv.innerHTML = '';
+                
+                for (const [loteria, datos] of Object.entries(sorteos)) {
+                    const card = document.createElement('div');
+                    card.className = 'resultado-card';
+                    
+                    card.innerHTML = `
+                        <h3>${loteria}</h3>
+                        <div class="numero-grande">${datos.numero}</div>
+                        <div class="serie">Serie: ${datos.signo}</div>
+                        <div class="fecha">${datos.fecha}</div>
+                    `;
+                    
+                    resultadosDiv.appendChild(card);
+                }
+            } catch (error) {
+                console.error('Error cargando resultados:', error);
             }
         }
 
-        // Cargar al iniciar
+        // ==================== PREDICCIONES ====================
+        
+        async function cargarPredicciones() {
+            try {
+                const response = await fetch('/get-predicciones');
+                const predicciones = await response.json();
+                
+                const prediccionesDiv = document.getElementById('predicciones');
+                
+                if (Object.keys(predicciones).length === 0) {
+                    prediccionesDiv.innerHTML = '<p class="empty-state">No hay predicciones disponibles</p>';
+                    return;
+                }
+                
+                prediccionesDiv.innerHTML = '';
+                
+                for (const [loteria, datos] of Object.entries(predicciones)) {
+                    const card = document.createElement('div');
+                    card.className = 'prediccion-card';
+                    
+                    card.innerHTML = `
+                        <h3>🎯 ${loteria}</h3>
+                        <div class="numero-predicho">${datos.numero}</div>
+                        <div class="frecuencia">Frecuencia: ${datos.frecuencia}x</div>
+                    `;
+                    
+                    prediccionesDiv.appendChild(card);
+                }
+            } catch (error) {
+                console.error('Error cargando predicciones:', error);
+            }
+        }
+
+        // ==================== ANÁLISIS DE NÚMEROS ====================
+        
+        async function cargarAnalisisNumeros() {
+            try {
+                const response = await fetch('/get-analisis-numeros');
+                const analisis = await response.json();
+                
+                const analisisDiv = document.getElementById('analisis-numeros');
+                
+                if (Object.keys(analisis).length === 0) {
+                    analisisDiv.innerHTML = '<p class="empty-state">No hay análisis disponible</p>';
+                    return;
+                }
+                
+                analisisDiv.innerHTML = '';
+                
+                for (const [numero, datos] of Object.entries(analisis)) {
+                    const card = document.createElement('div');
+                    card.className = 'analisis-card';
+                    
+                    const topLoterías = Object.entries(datos.loterrias_donde_cayo || {})
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 3)
+                        .map(([lot, cant]) => `${lot} (${cant}x)`)
+                        .join(', ');
+                    
+                    card.innerHTML = `
+                        <h3>✨ ${numero}</h3>
+                        <div class="analisis-stats">
+                            <div class="stat">
+                                <span class="stat-label">Apariciones Totales</span>
+                                <span class="stat-value">${datos.apariciones_total || 0}</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Último Año</span>
+                                <span class="stat-value">${datos.apariciones_1ano || 0}</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Probabilidad</span>
+                                <span class="stat-value">${(datos.probabilidad || 0).toFixed(1)}%</span>
+                            </div>
+                        </div>
+                        <div class="top-loterias">
+                            <strong>Top Loterías:</strong> ${topLoterías || 'N/A'}
+                        </div>
+                        ${datos.proxima_prediccion ? `<div class="proxima-fecha">Próxima estimada: ${datos.proxima_prediccion}</div>` : ''}
+                    `;
+                    
+                    analisisDiv.appendChild(card);
+                }
+            } catch (error) {
+                console.error('Error cargando análisis:', error);
+            }
+        }
+
+        // ==================== PROGRESO EN TIEMPO REAL ====================
+        
+        async function verificarProgreso() {
+            try {
+                const response = await fetch('/get-progreso');
+                const progreso = await response.json();
+                
+                actualizarBarraProgreso(
+                    progreso.porcentaje, 
+                    progreso.mensaje, 
+                    progreso.estado
+                );
+                
+                // Si completó o hubo error, detener polling y recargar datos
+                if (progreso.estado === 'completado') {
+                    clearInterval(intervalId);
+                    intervalId = null;
+                    
+                    setTimeout(() => {
+                        ocultarProgreso();
+                        cargarResultados();
+                        cargarPredicciones();
+                        cargarAnalisisNumeros();
+                    }, 2000);
+                } else if (progreso.estado === 'error') {
+                    clearInterval(intervalId);
+                    intervalId = null;
+                    setTimeout(() => ocultarProgreso(), 3000);
+                }
+            } catch (error) {
+                console.error('Error verificando progreso:', error);
+            }
+        }
+
+        // ==================== BOTONES ====================
+        
+        document.getElementById('btn-iniciar').addEventListener('click', async () => {
+            try {
+                mostrarProgreso();
+                actualizarBarraProgreso(0, 'Iniciando análisis...', 'procesando');
+                
+                const response = await fetch('/start-analysis', { method: 'POST' });
+                const data = await response.json();
+                
+                console.log('Análisis iniciado:', data.message);
+                
+                // Iniciar polling cada 1 segundo
+                if (intervalId) clearInterval(intervalId);
+                intervalId = setInterval(verificarProgreso, 1000);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                actualizarBarraProgreso(0, 'Error al iniciar análisis', 'error');
+                setTimeout(() => ocultarProgreso(), 3000);
+            }
+        });
+
+        document.getElementById('btn-historico').addEventListener('click', async () => {
+            try {
+                if (confirm('¿Descargar 5 años de histórico? Esto puede tardar varios minutos.')) {
+                    mostrarProgreso();
+                    actualizarBarraProgreso(0, 'Descargando histórico...', 'procesando');
+                    
+                    const response = await fetch('/obtener-historico', { method: 'POST' });
+                    const data = await response.json();
+                    
+                    if (data.status === 'success') {
+                        actualizarBarraProgreso(100, `✅ ${data.message}`, 'completado');
+                        setTimeout(() => {
+                            ocultarProgreso();
+                            cargarResultados();
+                            cargarPredicciones();
+                            cargarAnalisisNumeros();
+                        }, 2000);
+                    } else {
+                        actualizarBarraProgreso(0, `❌ ${data.message}`, 'error');
+                        setTimeout(() => ocultarProgreso(), 3000);
+                    }
+                    
+                    // Iniciar polling
+                    if (intervalId) clearInterval(intervalId);
+                    intervalId = setInterval(verificarProgreso, 1000);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                actualizarBarraProgreso(0, 'Error al descargar histórico', 'error');
+                setTimeout(() => ocultarProgreso(), 3000);
+            }
+        });
+
+        // ==================== INICIALIZACIÓN ====================
+        
         document.addEventListener('DOMContentLoaded', () => {
             cargarCalendario();
             cargarResultados();
-
-            const btnAnalizar = document.getElementById('btnAnalizar');
-            if (btnAnalizar) {
-                btnAnalizar.addEventListener('click', iniciarAnalisis);
-            }
+            cargarPredicciones();
+            cargarAnalisisNumeros();
         });
     </script>
 </body>
