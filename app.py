@@ -43,7 +43,6 @@ modelo_ia = None
 NUMEROS_ESPECIALES = ["0419", "0116", "2710", "1012", "6888"]
 
 # 📅 CALENDARIO ACTUALIZADO DE LOTERÍAS
-# 0=Lunes, 1=Martes, 2=Miércoles, 3=Jueves, 4=Viernes, 5=Sábado, 6=Domingo
 DIAS_LOTERIA = {
     "Cundinamarca": [0],
     "Tolima": [0],
@@ -61,10 +60,6 @@ DIAS_LOTERIA = {
     "Cauca": [5]
 }
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-# ==================== FUNCIONES UTILITARIAS ====================
-
 def validar_fecha(fecha_str):
     """Valida y convierte string de fecha a objeto datetime"""
     formatos = ["%d/%m/%Y", "%d-%m-%Y", "%d/%m/%y", "%d-%m-%y", "%Y-%m-%d"]
@@ -76,17 +71,17 @@ def validar_fecha(fecha_str):
     return None
 
 def crear_o_validar_archivo_json():
-if not os.path.exists(ruta_archivo):
-with open(ruta_archivo, "w", encoding="utf-8") as f:
-json.dump({}, f)
+    if not os.path.exists(ruta_archivo):
+        with open(ruta_archivo, "w", encoding="utf-8") as f:
+            json.dump({}, f)
 
 def asegurar_carpeta_static():
-if not os.path.exists(carpeta_static):
-os.makedirs(carpeta_static)
+    if not os.path.exists(carpeta_static):
+        os.makedirs(carpeta_static)
 
 def copiar_json_a_static():
-asegurar_carpeta_static()
-if os.path.exists(ruta_archivo):
+    asegurar_carpeta_static()
+    if os.path.exists(ruta_archivo):
         try:
             shutil.copy(ruta_archivo, archivo_json_static)
         except:
