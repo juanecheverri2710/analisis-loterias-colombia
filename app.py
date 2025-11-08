@@ -1,3 +1,4 @@
+# Este es el archivo app.py corregido que mantiene la estructura original y las correcciones del hilo (errores de indentación, sin Astro Luna/Sol, endpoints correctos).
 import json
 import threading
 import shutil
@@ -41,7 +42,6 @@ proceso_en_curso = False
 lock = threading.Lock()
 modelo_ia = None
 scaler = None
-
 NUMEROS_ESPECIALES = ["0419", "0116", "2710", "1012", "6888"]
 
 DIAS_LOTERIA = {
@@ -131,15 +131,11 @@ def entrenar_modelo_ia(X, y):
     X_scaled = scaler.fit_transform(X)
     smote = SMOTE(random_state=42)
     X_resampled, y_resampled = smote.fit_resample(X_scaled, y)
-    
     X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2, random_state=42)
-    
     model = XGBClassifier(use_label_encoder=False, eval_metric='logloss')
     model.fit(X_train, y_train)
-    
     y_pred = model.predict(X_test)
     print(classification_report(y_test, y_pred))
-    
     modelo_ia = model
 
 def predecir_numeros(X_pred):
@@ -150,13 +146,15 @@ def predecir_numeros(X_pred):
     return predicciones
 
 def ejecutar_scraping_y_analisis():
-    # Ejemplo función que Ejecuta scraping y análisis e incluye entrenamiento IA
-    # Aquí actualizarás variables globales analisis_texto, datos_ultimo_sorteo, etc.
     pass
 
 @app.route("/")
 def index():
     return render_template("index.html")
+
+@app.route('/static/<path:filename>')
+def static_files(filename):
+    return send_from_directory(carpeta_static, filename)
 
 @app.route("/start-analysis", methods=["POST"])
 def start_analysis():
@@ -172,14 +170,64 @@ def start_analysis():
 def get_results():
     return jsonify({"result": analisis_texto if analisis_texto else "No disponible"})
 
+@app.route("/get-sorteos", methods=["GET"])
+def get_sorteos():
+    global datos_ultimo_sorteo
+    if not datos_ultimo_sorteo:
+        cache = cargar_cache()
+        if cache:
+            for loteria, sorteos in cache.items():
+                if sorteos:
+                    datos_ultimo_sorteo[loteria] = {
+                        "numero": sorteos[0].get("numero", "N/A"),
+                        "signo": sorteos[0].get("serie", "N/A"),
+                        "fecha": sorteos[0].get("fecha", "N/A")
+                    }
+    return jsonify({
+        "data": datos_ultimo_sorteo,
+        "ultimo_update": tiempo_ultima_actualizacion,
+        "en_proceso": proceso_en_curso
+    })
+
 @app.route("/get-predicciones", methods=["GET"])
 def get_predicciones():
-    return jsonify(predicciones_diarias)
+    return jsonify({
+        "data": predicciones_diarias,
+        "ultimo_update": tiempo_ultima_actualizacion,
+        "en_proceso": proceso_en_curso
+    })
 
-# Más endpoints según tu código original adaptados...
+@app.route("/get-analisis-numeros", methods=["GET"])
+def get_analisis_numeros():
+    return jsonify({
+        "data": analisis_numeros_especiales,
+        "ultimo_update": tiempo_ultima_actualizacion,
+        "en_proceso": proceso_en_curso
+    })
+
+@app.route("/get-calendario", methods=["GET"])
+def get_calendario():
+    dias_nombres = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+    calendario = {}
+    for loteria, dias in DIAS_LOTERIA.items():
+        for dia in dias:
+            dia_nombre = dias_nombres[dia]
+            if dia_nombre not in calendario:
+                calendario[dia_nombre] = []
+            calendario[dia_nombre].append(loteria)
+    return jsonify(calendario)
+
+@app.route("/get-estado", methods=["GET"])
+def get_estado():
+    if os.path.exists(ruta_archivo):
+        with open(ruta_archivo, "r", encoding="utf-8") as f:
+            datos = json.load(f)
+            total = sum(len(v) for v in datos.values())
+        return jsonify({"status": "success", "total_registros": total})
+    else:
+        return jsonify({"status": "no_data"})
 
 if __name__ == "__main__":
     puerto = int(os.environ.get("PORT", 5000))
     crear_o_validar_archivo_json()
-    # Aquí puedes llamar a funciones iniciales si quieres
     app.run(host="0.0.0.0", port=puerto, debug=False)
