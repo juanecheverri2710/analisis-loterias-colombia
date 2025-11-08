@@ -94,6 +94,7 @@ def cargar_historial(ruta):
             return json.load(f)
     except:
         return {}
+
 def guardar_cache(datos):
     try:
         with open(ruta_cache, "w", encoding="utf-8") as f:
@@ -162,12 +163,11 @@ def ejecutar_scraping_y_analisis():
                     conteo[numero] += 1
             analisis_numeros_especiales[loteria] = conteo
 
-        # Simulación simple del entrenamiento (ajustar a datos reales)
-        X = ...  # Tus características procesadas
-        y = ...  # Tus etiquetas
-
-        if len(X) > 1:
-            entrenar_modelo_ia(X, y)
+        # Aquí deberías cargar y preparar X e y para el entrenamiento
+        # Ejemplo ficticio
+        X = np.array([[1, 2, 3], [2, 3, 4]])
+        y = np.array([0, 1])
+        entrenar_modelo_ia(X, y)
 
         dia_actual = datetime.now().weekday()
         loterias_juegan_hoy = [l for l, dias in DIAS_LOTERIA.items() if dia_actual in dias]
@@ -182,6 +182,7 @@ def ejecutar_scraping_y_analisis():
         analisis_texto = f"Error en análisis: {e}"
     finally:
         proceso_en_curso = False
+
 @app.route("/start-analysis", methods=["POST"])
 def start_analysis():
     global proceso_en_curso
