@@ -20,10 +20,8 @@ import socket
 import time
 import warnings
 from scipy import stats
-
 warnings.filterwarnings('ignore')
 
-# ==================== CONFIGURACIÓN ====================
 app = Flask(__name__)
 app.config['PREFERRED_URL_SCHEME'] = 'https'
 app.config['TRUST_REMOTE_ADDR'] = True
@@ -33,7 +31,6 @@ ruta_archivo = "resultados_loterias.json"
 ruta_cache = "cache_loterias.json"
 carpeta_static = "static"
 archivo_json_static = os.path.join(carpeta_static, ruta_archivo)
-
 analisis_texto = ""
 datos_ultimo_sorteo = {}
 predicciones_diarias = {}
@@ -42,28 +39,25 @@ tiempo_ultima_actualizacion = None
 proceso_en_curso = False
 lock = threading.Lock()
 modelo_ia = None
-
 NUMEROS_ESPECIALES = ["0419", "0116", "2710", "1012", "6888"]
 
 # 📅 CALENDARIO ACTUALIZADO DE LOTERÍAS
 # 0=Lunes, 1=Martes, 2=Miércoles, 3=Jueves, 4=Viernes, 5=Sábado, 6=Domingo
 DIAS_LOTERIA = {
-    "Astro Luna": [0, 1, 2, 3, 4, 5, 6],  # Todos los días
-    "Astro Sol": [0, 1, 2, 3, 4, 5, 6],   # Todos los días
-    "Cundinamarca": [0],  # Lunes
-    "Tolima": [0],        # Lunes
-    "Cruz Roja": [1],     # Martes
-    "Huila": [1],         # Martes
-    "Manizales": [2],     # Miércoles
-    "Valle": [2],         # Miércoles
-    "Meta": [2],          # Miércoles
-    "Bogotá": [3],        # Jueves
-    "Quindío": [3],       # Jueves
-    "Medellín": [4],      # Viernes
-    "Risaralda": [4],     # Viernes
-    "Santander": [4],     # Viernes
-    "Boyacá": [5],        # Sábado
-    "Cauca": [5]          # Sábado
+    "Cundinamarca": [0],
+    "Tolima": [0],
+    "Cruz Roja": [1],
+    "Huila": [1],
+    "Manizales": [2],
+    "Valle": [2],
+    "Meta": [2],
+    "Bogotá": [3],
+    "Quindío": [3],
+    "Medellín": [4],
+    "Risaralda": [4],
+    "Santander": [4],
+    "Boyacá": [5],
+    "Cauca": [5]
 }
 
 # Números especiales a analizar
